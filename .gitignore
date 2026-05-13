@@ -16,6 +16,9 @@ __pycache__/
 .playwright-mcp/
 .claude/
 
+# —— Claude Code 的本地备忘（含登录密码等敏感信息，绝对不进 git）——
+CLAUDE.md
+
 # —— 本地调试截图 / 二进制 dump（保留站点用的 lilibear_logo.png）——
 *.png
 !lilibear_logo.png
