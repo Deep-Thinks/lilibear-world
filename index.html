@@ -1,0 +1,3437 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 强制声明 Referrer-Policy: 解决微信内嵌浏览器 (X5/XWEB) 不发 Referer 导致
+     高德 vdata.amap.com/mapclick 鉴权空响应、SDK 抛 INVALID_USER_DOMAIN 的问题。
+     origin-when-cross-origin 对跨域只发 origin (https://world.xmu-cuisine.club)，
+     既能让高德通过校验，又不会泄露具体路径。-->
+<meta name="referrer" content="origin-when-cross-origin">
+<title>栗栗熊环游世界 · 厦门大学美食协会</title>
+<meta name="description" content="点一个地方，AI 让栗栗熊去吃遍那里的美食。厦门大学美食协会出品。">
+
+<!-- Open Graph：微信群 / Telegram / iMessage 等粘贴链接时显示卡片预览 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="栗栗熊环游世界">
+<meta property="og:title" content="栗栗熊环游世界 · 厦门大学美食协会">
+<meta property="og:description" content="点一个地方，AI 让栗栗熊去吃遍那里的美食。已经画过 89 个地方，加入栗栗熊的旅程吧 🌍">
+<meta property="og:image" content="https://world.xmu-cuisine.club/lilibear_logo.png">
+<meta property="og:image:width" content="600">
+<meta property="og:image:height" content="600">
+<meta property="og:url" content="https://world.xmu-cuisine.club/">
+<meta property="og:locale" content="zh_CN">
+
+<!-- Twitter / X 卡片 -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="栗栗熊环游世界 · 厦门大学美食协会">
+<meta name="twitter:description" content="点一个地方，AI 让栗栗熊去吃遍那里的美食 🌍">
+<meta name="twitter:image" content="https://world.xmu-cuisine.club/lilibear_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E🐼%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --paper:    #fbf3e4;
+    --paper-2:  #f3e7cf;
+    --paper-3:  #ecdcb8;
+    --ink:      #4a342a;
+    --ink-soft: #8a6a55;
+    --accent:   #d8593a;
+    --accent-2: #b8451f;
+    --leaf:     #6f9b5a;
+    --sky:      #d9ebe8;
+    --shadow:   rgba(80, 50, 30, 0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Noto Sans SC', 'PingFang SC', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+  }
+  /* —— 顶栏 —— */
+  header {
+    position: fixed; inset: 0 0 auto 0; z-index: 10;
+    padding: 18px 28px 14px;
+    display: flex; align-items: center; gap: 18px;
+    background: linear-gradient(to bottom, rgba(251, 243, 228, 0.92), rgba(251, 243, 228, 0));
+    pointer-events: none;
+  }
+  /* logo: 去掉米色圆底，直接出小熊猫；用 drop-shadow 给手绘感投影，
+     避免「圆框包方图」的天圆地方观感 */
+  header .logo-wrap {
+    position: relative;
+    width: 96px; height: 96px;
+    flex-shrink: 0;
+    pointer-events: auto;
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(3px 3px 0 var(--ink)) drop-shadow(0 2px 4px var(--shadow));
+    transition: transform .2s ease;
+  }
+  header .logo-wrap:hover { transform: translateY(-2px) rotate(-3deg); }
+  header .logo-wrap img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  header h1 {
+    font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', sans-serif;
+    font-size: 32px; font-weight: 400;
+    letter-spacing: 2px;
+    color: var(--accent-2);
+    text-shadow: 2px 2px 0 var(--paper-2);
+    line-height: 1;
+  }
+  header .sub {
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 14px; color: var(--ink-soft);
+    margin-top: 5px;
+  }
+  /* —— 角标 —— */
+  .badge {
+    position: fixed; bottom: 18px; left: 24px; z-index: 10;
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 13px; color: var(--ink-soft);
+    background: rgba(251, 243, 228, 0.85);
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1.5px dashed var(--ink-soft);
+  }
+  /* —— 地图容器 —— */
+  #globe {
+    position: absolute; inset: 0;
+    background: var(--paper);
+  }
+  /* —— 引导提示气泡 —— */
+  .hint {
+    position: fixed;
+    left: 50%; bottom: 32px; transform: translateX(-50%);
+    z-index: 10;
+    padding: 12px 22px;
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 28px;
+    box-shadow: 3px 3px 0 var(--ink);
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    animation: bob 2.2s ease-in-out infinite;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    text-align: center;
+  }
+  .hint.hidden { opacity: 0; }
+  .hint.busy { border-color: var(--accent); color: var(--accent-2); }
+  .hint::after {
+    content: ''; position: absolute;
+    left: 50%; bottom: -10px; transform: translateX(-50%);
+    width: 16px; height: 16px;
+    background: #fff;
+    border-right: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    rotate: 45deg;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%      { transform: translateX(-50%) translateY(-6px); }
+  }
+  /* —— 右侧抽屉 —— */
+  #panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(38vw, 460px);
+    background: var(--paper);
+    border-left: 3px solid var(--ink);
+    box-shadow: -6px 0 0 var(--shadow);
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(.4,1.4,.5,1);
+    z-index: 20;
+    display: flex; flex-direction: column;
+  }
+  #panel.open { transform: translateX(0); }
+  #panel-head {
+    padding: 16px 20px;
+    border-bottom: 2px dashed var(--ink-soft);
+    display: flex; align-items: center; gap: 12px;
+  }
+  #panel-head .where {
+    flex: 1;
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 18px; color: var(--accent-2);
+    line-height: 1.3;
+  }
+  #panel-head .where small {
+    display: block;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 11px; color: var(--ink-soft);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  #panel button.icon {
+    background: transparent;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--ink);
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  #panel button.icon:hover { background: var(--ink); color: var(--paper); }
+  #panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px 24px;
+  }
+  #panel-body::-webkit-scrollbar { width: 8px; }
+  #panel-body::-webkit-scrollbar-thumb { background: var(--ink-soft); border-radius: 4px; }
+
+  /* —— 确认卡片 —— */
+  .confirm-card { text-align: center; padding: 24px 8px 8px; }
+  .confirm-card .mascot {
+    width: 110px; height: 110px;
+    margin: 0 auto 14px;
+    filter: drop-shadow(3px 3px 0 var(--ink)) drop-shadow(0 2px 4px var(--shadow));
+    animation: wave 2s ease-in-out infinite;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .confirm-card .mascot img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  @keyframes wave {
+    0%, 100% { transform: rotate(-3deg); }
+    50%      { transform: rotate(3deg); }
+  }
+  .confirm-card .ask {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 19px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  /* 旧的扁平 .latlng（结果页/loading 还在用），保留为兜底 */
+  .confirm-card .latlng {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent-2);
+    margin-bottom: 4px;
+  }
+  /* 新的两行层级：地名（大字手写）+ 坐标（mono 灰小字） */
+  .confirm-card .place-name {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 22px;
+    color: var(--accent-2);
+    line-height: 1.25;
+    margin-bottom: 2px;
+    /* 反查中态的半透明灰 */
+    transition: color 0.25s, opacity 0.25s;
+  }
+  .confirm-card .place-name.resolving {
+    color: var(--ink-soft);
+    opacity: 0.75;
+  }
+  .confirm-card .place-name.unresolved {
+    color: var(--ink-soft);
+    font-size: 17px;  /* 兜底文案小一点，让坐标承担主信息 */
+  }
+  .confirm-card .coord-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  /* 当地名兜底失败时，坐标升级为主信息 */
+  .confirm-card .place-name.unresolved + .coord-detail {
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .confirm-card .note {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 22px;
+  }
+  /* 预期等待提示 —— 比 .note 重，但不抢主标题的戏 */
+  .confirm-card .eta {
+    display: inline-block;
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper-2);
+    border: 1.5px dashed var(--ink-soft);
+    border-radius: 16px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+  }
+  .confirm-card .btn-row {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 0 4px;
+  }
+  .btn {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 16px;
+    padding: 12px 22px;
+    border-radius: 28px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 2.5px solid var(--ink);
+    letter-spacing: 1px;
+  }
+  .btn[disabled] { opacity: .55; cursor: not-allowed; }
+  .btn.primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .btn.primary:hover:not([disabled]) {
+    background: var(--accent-2);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .btn.primary:active:not([disabled]) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .btn.ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+  .btn.ghost:hover:not([disabled]) { background: var(--paper-2); }
+
+  /* —— loading 状态 —— */
+  .loading-card { text-align: center; padding: 36px 16px; }
+  .loading-card .mascot {
+    width: 90px; height: 90px;
+    margin: 0 auto 18px;
+    filter: drop-shadow(3px 3px 0 var(--ink)) drop-shadow(0 2px 4px var(--shadow));
+    animation: spin-bob 1.5s ease-in-out infinite;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .loading-card .mascot img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  @keyframes spin-bob {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50%      { transform: translateY(-6px) rotate(5deg); }
+  }
+  .loading-card .quip {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 17px; color: var(--ink);
+    margin-bottom: 6px;
+    transition: opacity 0.3s;
+    min-height: 24px;  /* 防止文案切换时高度抖动 */
+  }
+  .loading-card .quip.fading { opacity: 0.3; }
+  .loading-card .sub-quip {
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+    min-height: 20px;
+  }
+  .loading-card .timer { font-size: 12px; color: var(--ink-soft); }
+  .loading-card .dots::after {
+    content: '...';
+    animation: dotloop 1.5s steps(4, end) infinite;
+  }
+  @keyframes dotloop {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+  }
+  /* —— Loading 期间的「上次画过的」预览 —— */
+  .loading-peek {
+    margin-top: 18px;
+    padding: 12px;
+    background: var(--paper-2);
+    border: 1.5px dashed var(--ink-soft);
+    border-radius: 10px;
+    text-align: left;
+    display: flex; gap: 10px; align-items: center;
+  }
+  .loading-peek .peek-thumb {
+    flex-shrink: 0;
+    width: 48px; height: 64px;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    background: var(--paper) center/cover no-repeat;
+    overflow: hidden;
+  }
+  .loading-peek .peek-thumb img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .loading-peek .peek-text {
+    flex: 1; min-width: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .loading-peek .peek-text .peek-label {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .loading-peek .peek-text .peek-place {
+    color: var(--accent-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  /* 超时取消按钮，仅在 > 360s 后出现 */
+  .loading-card .cancel-hint {
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .loading-card .cancel-hint a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent);
+    cursor: pointer;
+  }
+  /* —— 结果图 —— */
+  .result-img {
+    width: 100%;
+    border: 2.5px solid var(--ink);
+    border-radius: 6px;
+    box-shadow: 4px 4px 0 var(--shadow);
+    display: block;
+    background: var(--paper-2);
+  }
+  .result-meta {
+    margin-top: 14px;
+    font-size: 12px; color: var(--ink-soft);
+    text-align: center;
+    line-height: 1.7;
+  }
+  .result-meta a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent);
+  }
+  /* 完成态三按钮 CTA：用户处于"我刚画完"高峰情绪，给三个出口避免直接关页面 */
+  .share-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0 4px;
+    justify-content: center;
+  }
+  .share-cta {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 14px;
+    padding: 9px 16px;
+    border-radius: 22px;
+    background: #fff;
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-block;
+    line-height: 1.2;
+  }
+  .share-cta:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .share-cta:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .share-cta.primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .share-cta.primary:hover {
+    background: var(--accent-2);
+  }
+  .err {
+    padding: 16px;
+    background: rgba(216, 89, 58, 0.08);
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--accent-2);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* —— 机票夹 —— */
+  .trips-empty {
+    text-align: center; padding: 30px 8px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .trip-card {
+    display: flex; gap: 12px;
+    padding: 10px;
+    background: var(--paper-2);
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    box-shadow: 2px 2px 0 var(--shadow);
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: transform .12s;
+  }
+  .trip-card:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--shadow); }
+  .trip-card .thumb {
+    flex-shrink: 0;
+    width: 60px; height: 80px;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    background: var(--paper) center/cover no-repeat;
+    overflow: hidden;
+  }
+  .trip-card .thumb img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .trip-card .meta {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    font-size: 12px; color: var(--ink-soft); line-height: 1.5;
+  }
+  .trip-card .meta .latlng {
+    color: var(--accent-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .trip-card .meta .when { font-size: 11px; }
+  .trip-card .del {
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-soft); font-size: 18px;
+    padding: 0 4px; align-self: flex-start;
+  }
+  .trip-card .del:hover { color: var(--accent); }
+
+  /* —— 机票夹/全球墙 tab 切换 —— */
+  .trips-tabs {
+    display: flex; gap: 6px; margin: -4px 0 14px;
+    border-bottom: 2px solid var(--ink-soft);
+  }
+  .trips-tab {
+    flex: 1;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    padding: 8px 6px;
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 14px; color: var(--ink-soft);
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  .trips-tab:hover { color: var(--ink); }
+  .trips-tab.active { color: var(--accent-2); border-bottom-color: var(--accent-2); }
+
+  /* —— 全球墙网格 —— */
+  .feed-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .feed-card {
+    display: flex; flex-direction: column;
+    background: var(--paper-2);
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    box-shadow: 2px 2px 0 var(--shadow);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: transform .12s;
+  }
+  .feed-card:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--shadow); }
+  .feed-card .thumb {
+    width: 100%;
+    aspect-ratio: 1 / 2;
+    background: var(--paper);
+    overflow: hidden;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .feed-card .thumb img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .feed-card .feed-meta {
+    padding: 6px 8px 8px;
+    font-size: 11px; color: var(--ink-soft); line-height: 1.5;
+  }
+  .feed-card .feed-place {
+    color: var(--accent-2);
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .feed-card .feed-author { font-size: 11px; }
+  .feed-card .feed-when { font-size: 10px; opacity: 0.7; }
+  .feed-card .feed-private {
+    position: absolute; top: 6px; right: 6px;
+    font-size: 10px;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .feed-loadmore-row { text-align: center; padding: 16px 0 8px; }
+  .feed-loadmore {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 14px;
+    padding: 8px 22px;
+    border-radius: 18px;
+    background: #fff;
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    cursor: pointer;
+  }
+  .feed-loadmore:hover { background: var(--accent); color: #fff; }
+  .feed-loading, .feed-end, .feed-err { font-size: 12px; color: var(--ink-soft); padding: 8px 0; }
+  .feed-err { color: #c0392b; cursor: pointer; }
+
+  @media (max-width: 640px) {
+    .feed-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .feed-card .feed-place { font-size: 13px; }
+  }
+
+  /* —— pending pin —— */
+  .pin-pending {
+    width: 22px; height: 22px;
+    border: 3px solid var(--accent);
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(216, 89, 58, 0.2);
+    animation: ping 1.4s ease-in-out infinite;
+    transform: translate(-50%, -50%);
+  }
+  /* .pin-done 已被 .pin-photo 替代（缩略图直接贴在地图对应经纬度）。
+     保留这条 CSS 可能误导，删除。 */
+  .pin-home {
+    width: 26px; height: 26px;
+    background: var(--leaf);
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    box-shadow: 2px 2px 0 var(--ink);
+    transform: translate(-50%, -50%);
+    position: relative;
+  }
+  .pin-home::after {
+    content: '家';
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 13px;
+  }
+  @keyframes ping {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(216, 89, 58, 0.2); }
+    50%      { box-shadow: 0 0 0 12px rgba(216, 89, 58, 0); }
+  }
+  /* —— 加载遮罩 —— */
+  #boot {
+    position: fixed; inset: 0;
+    background: var(--paper);
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 18px;
+    transition: opacity 0.6s;
+  }
+  #boot.gone { opacity: 0; pointer-events: none; }
+  #boot .boot-mascot {
+    width: 140px; height: 140px;
+    filter: drop-shadow(3px 3px 0 var(--ink)) drop-shadow(0 4px 8px var(--shadow));
+    animation: spin-bob 1.5s ease-in-out infinite;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #boot .boot-mascot img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  #boot .boot-text {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 18px;
+    color: var(--accent-2);
+  }
+  /* —— 顶部右侧工具条：view-switch / trips-btn / search 全在此容器 —— */
+  /* 桌面端 flex 横排 + 等高对齐；移动端整体右上角，子项缩小 */
+  .toolbar {
+    position: fixed;
+    top: 110px; right: 18px;
+    z-index: 10;
+    display: flex;
+    align-items: stretch;  /* 子项等高 */
+    gap: 10px;
+  }
+
+  /* 统一外壳：所有 .toolbar-item 子项共用纸质胶囊样式
+     这是关键的"复用"——桌面/移动端高度一致、风格一致 */
+  .toolbar-item {
+    background: rgba(251, 243, 228, 0.95);
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    box-shadow: 3px 3px 0 var(--shadow);
+    height: 40px;
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    padding: 0;
+    transition: box-shadow 0.12s, transform 0.12s;
+  }
+
+  /* —— view-switch（2D/3D/卫星）—— */
+  .view-switch {
+    padding: 3px;
+    gap: 2px;
+  }
+  .view-switch button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0 12px;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s;
+    display: flex; align-items: center;
+  }
+  .view-switch button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* —— trips-btn —— */
+  .trips-btn {
+    padding: 0 14px;
+    font-size: 14px;
+    cursor: pointer;
+    gap: 6px;
+    align-items: center;
+  }
+  .trips-btn:hover {
+    background: var(--paper-2);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--shadow);
+  }
+  .trips-btn .count {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 12px;
+    min-width: 18px;
+    text-align: center;
+    align-self: center;
+  }
+
+  /* —— search-box（桌面输入框；移动端默认隐藏，由 mobile-search-btn 替代）—— */
+  .search-box:focus-within { box-shadow: 4px 4px 0 var(--ink); }
+  .search-box input {
+    border: none;
+    background: transparent;
+    padding: 0 12px;
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    width: 220px;
+    outline: none;
+  }
+  .search-box input::placeholder {
+    color: var(--ink-soft);
+    font-family: 'Ma Shan Zheng', sans-serif;
+  }
+  .search-box .search-go {
+    border: none;
+    background: transparent;
+    border-left: 1.5px solid var(--ink);
+    padding: 0 12px;
+    cursor: pointer;
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    transition: background 0.12s;
+    display: flex; align-items: center;
+  }
+  .search-box .search-go:hover { background: var(--paper-2); }
+  .search-box .search-go:active { background: var(--paper-3); }
+  .search-box .search-go.searching {
+    color: var(--ink-soft);
+    pointer-events: none;
+  }
+
+  /* —— mobile-search-btn（桌面端隐藏；移动端等高方形按钮） —— */
+  .mobile-search-btn {
+    display: none;
+    width: 40px;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-search-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--shadow);
+  }
+
+  /* 移动端搜索展开时的遮罩 */
+  .search-veil {
+    position: fixed; inset: 0;
+    background: rgba(74, 52, 42, 0.42);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    z-index: 49;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  body.mobile-search-open .search-veil {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 错误提示气泡（搜不到时）：贴在 toolbar 正下方右侧 */
+  .search-error {
+    position: fixed;
+    top: 158px;   /* toolbar.top (110) + toolbar.height (40) + 8 */
+    right: 18px;
+    z-index: 11;
+    background: #fff;
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 3px 3px 0 var(--shadow);
+    padding: 8px 14px;
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 13px;
+    color: var(--accent-2);
+    max-width: 340px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .search-error.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  /* —— "已去过"地图标记：polaroid 风格缩略图，直接贴在地图对应经纬度 —— */
+  /* 取代屏幕四角散落的 #scattered-trips 方案：贴在地图对应位置才有"环游世界"的故事意义 */
+  .pin-photo {
+    width: 48px;
+    cursor: pointer;
+    transition: transform 0.18s cubic-bezier(.4,1.4,.5,1);
+    /* 每个 marker 实例通过 inline style 设随机倾斜 */
+  }
+  .pin-photo:hover {
+    transform: rotate(0deg) translate(-2px, -2px) scale(1.18) !important;
+    z-index: 200 !important;
+  }
+  .pin-photo .pp-thumb {
+    width: 48px; height: 60px;
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    box-shadow: 2px 2px 0 var(--ink), 3px 3px 0 var(--shadow);
+    overflow: hidden;
+    padding: 2px 2px 8px;  /* polaroid 下边宽 */
+  }
+  .pin-photo .pp-thumb .pp-inner {
+    width: 100%; height: 100%;
+    background: var(--paper-2) center/cover no-repeat;
+    overflow: hidden;
+  }
+  .pin-photo .pp-thumb .pp-inner img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  /* hover 时显示地名 tooltip（CSS 纯实现，不依赖 AMap InfoWindow） */
+  .pin-photo .pp-label {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%) rotate(0deg);  /* tooltip 不跟着倾斜 */
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Ma Shan Zheng', sans-serif;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.18s;
+    box-shadow: 2px 2px 0 var(--shadow);
+  }
+  .pin-photo:hover .pp-label { opacity: 1; }
+
+  /* —— 全球墙：所有公开点（小圆点，区别个人 polaroid） —— */
+  /* 切到「🌍 全球墙」tab 时显示，让用户立刻感觉栗栗熊遍布全球 */
+  .pin-public {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(232, 119, 34, 0.85);                /* 橙色（个人是棕色 polaroid） */
+    border: 1.5px solid rgba(255, 255, 255, 0.92);
+    box-shadow: 0 0 8px rgba(232, 119, 34, 0.55), 0 1px 2px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .pin-public:hover {
+    transform: scale(1.6);
+  }
+  .pin-public.is-mine {
+    /* 自己的图也会出现在公开层；用更深色避免和别人的视觉抢戏 */
+    background: rgba(120, 80, 30, 0.85);
+    box-shadow: 0 0 6px rgba(120, 80, 30, 0.4), 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  /* —— 首次访问欢迎气泡 —— */
+  /* 显示一次 (localStorage 记忆)，让访客先看到栗栗熊是谁、怎么玩 */
+  #welcome-bubble {
+    position: fixed;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    z-index: 30;
+    width: min(440px, calc(100vw - 40px));
+    padding: 24px 26px 22px;
+    background: #fff;
+    border: 2.5px solid var(--ink);
+    border-radius: 18px;
+    box-shadow: 5px 5px 0 var(--ink), 10px 10px 0 var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.4,1.4,.5,1);
+    text-align: center;
+  }
+  #welcome-bubble.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+  }
+  #welcome-bubble.gone {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96) translateY(8px);
+    pointer-events: none;
+  }
+  #welcome-bubble .wb-mascot {
+    width: 72px; height: 72px;
+    margin: -54px auto 8px;
+    filter: drop-shadow(3px 3px 0 var(--ink)) drop-shadow(0 2px 4px var(--shadow));
+    background: #fff;
+    border-radius: 50%;
+    padding: 4px;
+  }
+  #welcome-bubble .wb-mascot img {
+    width: 100%; height: 100%; object-fit: contain; display: block;
+  }
+  #welcome-bubble .wb-title {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 22px;
+    color: var(--accent-2);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  #welcome-bubble .wb-body {
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.7;
+    margin-bottom: 6px;
+  }
+  #welcome-bubble .wb-body em {
+    font-style: normal;
+    font-family: 'Ma Shan Zheng', sans-serif;
+    color: var(--accent-2);
+    font-size: 15px;
+  }
+  #welcome-bubble .wb-note {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  /* 社会证明 chip：让新人立刻感觉这是个"已经有人在玩"的活地方，而不是空荡荡的实验品 */
+  #welcome-bubble .wb-stat {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--accent-2);
+    background: #fff8ef;
+    border: 1.5px dashed var(--accent);
+    border-radius: 14px;
+    padding: 6px 12px;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  #welcome-bubble .wb-stat em {
+    font-style: normal;
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 16px;
+    color: var(--accent);
+    padding: 0 2px;
+  }
+  #welcome-bubble .wb-btn {
+    display: inline-block;
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 16px;
+    padding: 10px 26px;
+    border-radius: 24px;
+    background: var(--accent);
+    color: #fff;
+    border: 2.5px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+  #welcome-bubble .wb-btn:hover {
+    background: var(--accent-2);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  #welcome-bubble .wb-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  /* 半透明纸质背景，仅在欢迎气泡可见时 */
+  #welcome-veil {
+    position: fixed; inset: 0;
+    background: rgba(251, 243, 228, 0.7);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 29;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s;
+  }
+  #welcome-veil.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* —— 昵称弹窗（复用 welcome-bubble 的核心外观） —— */
+  #nick-bubble {
+    position: fixed;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    z-index: 31;
+    width: min(420px, calc(100vw - 40px));
+    padding: 24px 26px 22px;
+    background: #fff;
+    border: 2.5px solid var(--ink);
+    border-radius: 18px;
+    box-shadow: 5px 5px 0 var(--ink), 10px 10px 0 var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(.4,1.4,.5,1);
+    text-align: center;
+  }
+  #nick-bubble.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+  #nick-bubble .wb-mascot { width: 64px; height: 64px; margin: -48px auto 6px; filter: drop-shadow(3px 3px 0 var(--ink)); background: #fff; border-radius: 50%; padding: 4px; }
+  #nick-bubble .wb-mascot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  #nick-bubble .wb-title { font-family: 'ZCOOL KuaiLe', sans-serif; font-size: 20px; color: var(--accent-2); margin-bottom: 8px; }
+  #nick-bubble .wb-body { font-size: 14px; color: var(--ink); line-height: 1.7; margin-bottom: 14px; }
+  #nick-bubble .wb-body em { font-style: normal; font-family: 'Ma Shan Zheng', sans-serif; color: var(--accent-2); font-size: 15px; }
+  #nick-bubble .nick-input-row { margin: 0 0 6px; }
+  #nick-bubble #nick-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    background: #fdfbf6;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    outline: none;
+    box-sizing: border-box;
+  }
+  #nick-bubble #nick-input:focus { border-color: var(--accent-2); background: #fff; }
+  #nick-bubble .nick-err { min-height: 18px; font-size: 12px; color: #c0392b; margin-bottom: 8px; }
+  #nick-bubble .nick-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  #nick-bubble .wb-btn { font-family: 'ZCOOL KuaiLe', sans-serif; font-size: 15px; padding: 9px 18px; border-radius: 22px; background: #fff; color: var(--ink); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); cursor: pointer; }
+  #nick-bubble .wb-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+  #nick-bubble .wb-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+  #nick-bubble .nick-btn-primary { background: var(--accent); color: #fff; }
+  #nick-bubble .nick-btn-primary:hover { background: var(--accent-2); }
+  #nick-veil { position: fixed; inset: 0; background: rgba(251, 243, 228, 0.7); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 30; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  #nick-veil.visible { opacity: 1; pointer-events: auto; }
+
+  /* 确认面板的"上传到全球墙"开关 */
+  .feed-toggle-row { margin: 10px 0 4px; text-align: center; }
+  .feed-toggle-label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); cursor: pointer; user-select: none; }
+  .feed-toggle-label input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+  /* —— 移动端 —— */
+  @media (max-width: 640px) {
+    header { padding: 14px 18px 10px; }
+    header h1 { font-size: 24px; }
+    header .sub { font-size: 12px; }
+    header .logo-wrap { width: 72px; height: 72px; }
+
+    /* panel 改为底抽屉：从右侧改为从底部弹起，更符合移动端常规
+       max-height 78vh 给地球留出一截，让用户感觉两层共存 */
+    #panel {
+      top: auto;
+      left: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-width: 100%;
+      max-height: 80vh;
+      border-left: none;
+      border-top: 3px solid var(--ink);
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 -6px 0 var(--shadow);
+      transform: translateY(100%);
+    }
+    #panel.open { transform: translateY(0); }
+    /* 手势条：4px 灰条暗示这是可拖动/可关闭的抽屉 */
+    #panel::before {
+      content: '';
+      position: absolute;
+      top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 44px; height: 4px;
+      background: var(--ink-soft);
+      border-radius: 2px;
+      opacity: 0.6;
+    }
+    #panel-head {
+      padding: 22px 18px 14px;  /* 顶部给手势条让位 */
+    }
+    /* 触控目标 ≥ 44px（WCAG / iOS HIG / Material 一致） */
+    #panel button.icon {
+      width: 44px; height: 44px;
+      font-size: 20px;
+    }
+    .btn {
+      min-height: 48px;  /* primary/ghost 按钮触控充足 */
+      font-size: 17px;
+    }
+
+    /* hint 由 JS 在 panel 打开时主动隐藏（onLocationPicked/openTrips/openTrip）
+       badge z-index:10 < panel z-index:20，自然被底抽屉覆盖 */
+
+    .hint { font-size: 14px; padding: 10px 16px; bottom: 20px; }
+    .badge { font-size: 12px; padding: 6px 10px; left: 14px; bottom: 14px; }
+
+    /* toolbar 整体：右上角，更紧凑 */
+    .toolbar {
+      top: 92px;
+      right: 14px;
+      gap: 8px;
+    }
+    /* 所有 toolbar-item 子项触控高度 44px（WCAG/HIG） */
+    .toolbar-item { height: 44px; }
+    /* view-switch 内按钮缩字号 padding */
+    .view-switch { padding: 3px; gap: 1px; }
+    .view-switch button { padding: 0 8px; font-size: 12px; }
+    /* trips-btn 缩小 padding */
+    .trips-btn { padding: 0 10px; font-size: 13px; }
+    .trips-btn > span:first-child { white-space: nowrap; }
+    .trips-btn .count { padding: 1px 6px; font-size: 11px; }
+    /* mobile-search-btn 也是 44 方形 */
+    .mobile-search-btn { width: 44px; font-size: 16px; }
+
+    #welcome-bubble {
+      padding: 22px 20px 20px;
+    }
+    #welcome-bubble .wb-title { font-size: 19px; }
+    #welcome-bubble .wb-body { font-size: 13px; }
+    #welcome-bubble .wb-btn { min-height: 48px; padding: 12px 26px; }
+
+    /* loading-peek 在小屏稍微紧凑 */
+    .loading-peek { padding: 10px; gap: 8px; }
+    .loading-peek .peek-thumb { width: 42px; height: 56px; }
+
+    /* 小屏 toolbar 里 search-box 默认隐藏，让 mobile-search-btn 顶上 */
+    .search-box { display: none; }
+    .mobile-search-btn { display: flex; }
+    /* 错误气泡默认隐藏，在搜索展开态时由下方规则接管 */
+    .search-error {
+      top: 80px;
+      left: 14px;
+      right: 14px;
+      max-width: calc(100vw - 28px);
+    }
+
+    /* 搜索展开态：search-box 脱离 toolbar 流，跑去顶部全宽
+       用 fixed override 父级 flex 布局，加 slideDown 动画 */
+    body.mobile-search-open .search-box {
+      display: flex;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      width: 100%;
+      height: auto;
+      background: var(--paper);
+      border: none;
+      border-bottom: 3px solid var(--ink);
+      border-radius: 0;
+      box-shadow: 0 6px 0 var(--shadow);
+      padding: 14px;
+      padding-top: max(14px, env(safe-area-inset-top, 14px));
+      z-index: 50;
+      gap: 10px;
+      align-items: center;
+      overflow: visible;
+      animation: slideDownIn 0.28s cubic-bezier(.4,1.4,.5,1);
+    }
+    body.mobile-search-open .search-box input {
+      flex: 1;
+      width: auto;
+      font-size: 16px;  /* >=16px 防 iOS Safari focus 时自动放大 */
+      min-height: 44px;
+      padding: 0 14px;
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+    }
+    body.mobile-search-open .search-box .search-go {
+      border: 2px solid var(--ink);
+      border-left: 2px solid var(--ink);
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      min-height: 44px;
+      padding: 0 16px;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    body.mobile-search-open .search-box .search-go:hover {
+      background: var(--accent-2);
+    }
+    /* 搜索展开时把 toolbar 其它项藏起来，避免 z-index 视觉打架 */
+    body.mobile-search-open .toolbar > :not(.search-box) {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    /* 错误气泡在展开态贴在搜索栏正下方 */
+    body.mobile-search-open .search-error {
+      top: 78px;
+      z-index: 51;
+    }
+
+    @keyframes slideDownIn {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(0); }
+    }
+  }
+  /* —— 超小屏（< 380px，老款 iPhone SE 等）—— */
+  @media (max-width: 380px) {
+    header h1 { font-size: 20px; }
+    header .logo-wrap { width: 60px; height: 60px; }
+    .toolbar { gap: 6px; }
+    .toolbar-item { font-size: 12px; }
+    .view-switch button { padding: 0 6px; font-size: 11px; }
+    .trips-btn { padding: 0 8px; font-size: 12px; }
+    .trips-btn > span:first-child { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div class="boot-mascot"><img src="lilibear_logo.png" alt=""></div>
+  <div class="boot-text">栗栗熊正在打包行李<span style="font-family:'JetBrains Mono',monospace">...</span></div>
+</div>
+
+<!-- 首次访问欢迎层（localStorage 记忆，只展示一次） -->
+<div id="welcome-veil"></div>
+<div id="welcome-bubble">
+  <div class="wb-mascot"><img src="lilibear_logo.png" alt=""></div>
+  <div class="wb-title">你好，我是 <em>栗栗熊</em></div>
+  <div class="wb-body">
+    我是 <em>厦门大学美食协会</em> 的小熊猫吉祥物。<br>
+    在地球上点任何一个地方，我就去那儿，<br>
+    给你画一张当地的<em>美食地图</em>。
+  </div>
+  <!-- 社会证明：JS 拉到公开点数后填充并取消 hidden -->
+  <div class="wb-stat" id="welcome-stat" hidden>
+    全球已经画过 <em id="welcome-stat-have">0</em> 个地方 ·
+    你来贡献第 <em id="welcome-stat-next">1</em> 个 🌍
+  </div>
+  <div class="wb-note">AI 手绘 · 每张需要 3–5 分钟 · 这是协会的第一个项目</div>
+  <button class="wb-btn" id="welcome-go" type="button">带我玩玩 →</button>
+</div>
+
+<!-- 昵称弹窗（首次进入或主动改名时显示） -->
+<div id="nick-veil"></div>
+<div id="nick-bubble">
+  <div class="wb-mascot"><img src="lilibear_logo.png" alt=""></div>
+  <div class="wb-title">给自己起个名儿</div>
+  <div class="wb-body">
+    画好的图会出现在 <em>全球墙</em> 上，<br>
+    带着你的名字给所有人看到。
+  </div>
+  <div class="nick-input-row">
+    <input id="nick-input" type="text" maxlength="16" placeholder="比如：栗栗熊的朋友" autocomplete="off">
+  </div>
+  <div class="nick-err" id="nick-err"></div>
+  <div class="nick-btn-row">
+    <button class="wb-btn" id="nick-skip" type="button">先不取，匿名</button>
+    <button class="wb-btn nick-btn-primary" id="nick-save" type="button">就用这个名字</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo-wrap"><img src="lilibear_logo.png" alt="栗栗熊"></div>
+  <div>
+    <h1>栗栗熊环游世界</h1>
+    <div class="sub">厦门大学美食协会 · 出品</div>
+  </div>
+</header>
+
+<div id="globe"></div>
+
+<div class="search-veil" id="search-veil"></div>
+
+<!-- 右上角工具条：view-switch / trips-btn / search 统一容器
+     顺序：左 → 右 = 视图切换 → 机票夹 → 搜索（搜索是最常被关注的，放最右） -->
+<div class="toolbar" id="toolbar">
+  <div class="view-switch toolbar-item" id="view-switch">
+    <button data-view="2D">2D</button>
+    <button data-view="3D" class="active">3D</button>
+    <button data-view="satellite">卫星</button>
+  </div>
+  <button class="trips-btn toolbar-item" id="trips-btn" type="button" title="历史足迹">
+    <span>🎫 机票夹</span>
+    <span class="count" id="trips-count">0</span>
+  </button>
+  <!-- 桌面态：输入框；移动端默认隐藏，由 mobile-search-btn 替代 -->
+  <div class="search-box toolbar-item" id="search-box">
+    <input id="search-input" type="search" autocomplete="off" placeholder="搜个地方让栗栗熊去（如 东京、巴黎）">
+    <button class="search-go" id="search-go" type="button" title="搜索">出发去</button>
+  </div>
+  <button class="mobile-search-btn toolbar-item" id="mobile-search-btn" type="button" aria-label="搜索地名">🔍</button>
+</div>
+<div class="search-error" id="search-error"></div>
+
+<div class="hint" id="hint">👉 缩放并点击地图，看栗栗熊去那里吃什么</div>
+
+<div class="badge">栗栗熊 © 厦大美食协会 · 地图 © 高德</div>
+
+<aside id="panel">
+  <div id="panel-head">
+    <div class="where" id="where">—</div>
+    <button class="icon" id="close-btn" title="关闭">×</button>
+  </div>
+  <div id="panel-body"></div>
+</aside>
+
+<script>
+//==================================================================
+// 常量
+//==================================================================
+// 注意：图像生成 API Key 已不在前端持有，由 server.py 从 .env 注入。
+// 前端任何 fetch 都 *不要* 携带 Authorization 头。
+const API_URL = '/api/dmfox/gptapi/v1/images/edits';
+
+const REF_FILES = [
+  'refs_compressed/表情包×5＋bot头像.jpg',
+  'refs_compressed/寿司＋樱花.jpg',
+  'refs_compressed/大树＋蒙古包.jpg',
+  'refs_compressed/烧烤＋面包.jpg',
+  'refs_compressed/做饭＋开饭.jpg',
+  'refs_compressed/表情包×4.jpg',
+];
+const SIZE_CANDIDATES = ['1024x3072', '1024x2048', '1024x1536'];
+
+// 基于真实 events.jsonl 的耗时分布设计（n=7，中位 221s，平均 229s，最慢 325s）
+// 各阶段挑选 elapsed >= atSec 中最大的一项。sub 是副文案（小字、群体感）
+// 故意承认"3-5 分钟"和"偶尔会画到 5 分半"——预期管理诚实第一
+const LOADING_STAGES = [
+  { atSec:   0, main: '栗栗熊在收拾画笔',  sub: '准备出发去 ${place}' },
+  { atSec:  20, main: '栗栗熊飞到了 ${place}', sub: '正在物色当地食物' },
+  { atSec:  60, main: '在街边晃了一圈',       sub: '挑出最值得画的几样' },
+  { atSec: 120, main: '草稿打好了，开始上色', sub: '通常 3–5 分钟' },
+  { atSec: 180, main: '颜料慢慢晕开',         sub: '大部分人都在这会儿等着' },
+  { atSec: 240, main: '快画完了，大菜在最后', sub: '你已经等过中位数了，再坚持一下' },
+  { atSec: 300, main: '栗栗熊画得很认真',     sub: '偶尔会画到 5 分半，再陪他一会儿' },
+  { atSec: 360, main: '比预期稍长',           sub: '网络可能慢了一点，可以继续等' },
+];
+
+function pickLoadingStage(elapsedSec) {
+  let chosen = LOADING_STAGES[0];
+  for (const s of LOADING_STAGES) {
+    if (elapsedSec >= s.atSec) chosen = s;
+    else break;
+  }
+  return chosen;
+}
+
+function fmtMmSs(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+const HOME = { lat: 24.4346, lng: 118.0852, label: '厦门大学' };
+
+// 高德 JS API Key + 安全密钥（v2 强制要求 securityJsCode；否则会
+// 报 USERKEY_PLAT_NOMATCH 并降级 base tile / 关闭 3D 楼块等数据）
+// 申请地址：https://console.amap.com/dev/key/app 同一应用下的「安全密钥」
+const AMAP_KEY = '__AMAP_KEY__';
+const AMAP_SECURITY_CODE = '__AMAP_SECURITY_CODE__';
+
+// —— 状态/标识 ——
+const TAB_ID = (function () {
+  const arr = new Uint8Array(8);
+  (window.crypto || window.msCrypto).getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+})();
+const BUSY_KEY = 'lilibear.busy';
+const BUSY_TTL_MS = 10 * 60 * 1000;  // 10 分钟过期自动解锁
+const TRIPS_KEY = 'lilibear.trips';
+const TRIPS_DB = 'lilibear_world';
+const TRIPS_STORE = 'images';
+const BC_NAME = 'lilibear';
+
+//==================================================================
+// XSS / 文本清洗工具
+//==================================================================
+function $(id) { return document.getElementById(id); }
+function escText(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function el(tag, attrs, ...children) {
+  const node = document.createElement(tag);
+  if (attrs) for (const k in attrs) {
+    if (k === 'class') node.className = attrs[k];
+    else if (k === 'style') node.style.cssText = attrs[k];
+    else if (k.startsWith('on') && typeof attrs[k] === 'function') node.addEventListener(k.slice(2), attrs[k]);
+    else node.setAttribute(k, attrs[k]);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  return node;
+}
+
+//==================================================================
+// 日志上报（best-effort，失败不阻塞）
+//==================================================================
+function logEvent(type, extra) {
+  try {
+    const payload = Object.assign({}, extra || {}, { type, tab_id: TAB_ID });
+    fetch('/api/log/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {}
+}
+
+async function logImageBlob(blob, meta) {
+  try {
+    const fd = new FormData();
+    fd.append('image', blob, 'result.png');
+    if (meta.lat != null) fd.append('lat', String(meta.lat));
+    if (meta.lng != null) fd.append('lng', String(meta.lng));
+    if (meta.size)        fd.append('size', meta.size);
+    if (meta.trip_id)     fd.append('trip_id', meta.trip_id);
+    if (meta.duration_sec != null) fd.append('duration_sec', String(meta.duration_sec));
+    const r = await fetch('/api/log/image', { method: 'POST', body: fd });
+    return r.ok ? (await r.json()) : null;
+  } catch {
+    return null;
+  }
+}
+
+//==================================================================
+// IndexedDB: 图片 Blob 存储
+//==================================================================
+function dbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(TRIPS_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(TRIPS_STORE)) {
+        db.createObjectStore(TRIPS_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbPut(id, blob) {
+  const db = await dbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(TRIPS_STORE, 'readwrite');
+    tx.objectStore(TRIPS_STORE).put(blob, id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbGet(id) {
+  const db = await dbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(TRIPS_STORE, 'readonly');
+    const req = tx.objectStore(TRIPS_STORE).get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbDel(id) {
+  const db = await dbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(TRIPS_STORE, 'readwrite');
+    tx.objectStore(TRIPS_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// 客户端缩略图：地球仪 marker 用 thumb，避免把 1MB 原图解码成 4MB RAM
+// 大图仍存在 dbGet(id) 下，openTrip 看大图不退化
+async function makeThumbBlob(blob, maxSide = 256, quality = 0.78) {
+  try {
+    const bmp = await createImageBitmap(blob);
+    const ratio = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * ratio));
+    const h = Math.max(1, Math.round(bmp.height * ratio));
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    if (bmp.close) bmp.close();
+    return await new Promise((res) => cv.toBlob(res, 'image/jpeg', quality));
+  } catch (e) {
+    return null;
+  }
+}
+
+async function dbPutWithThumb(id, blob) {
+  await dbPut(id, blob);                                       // 大图（看大图用）
+  const thumb = await makeThumbBlob(blob, 256, 0.78);
+  if (thumb) await dbPut(id + ':thumb', thumb).catch(() => {}); // 缩略图（marker 用）
+}
+
+async function dbGetThumbOrFull(id) {
+  // 优先 thumb，回退 full（兼容老 trip 没有 thumb）
+  const t = await dbGet(id + ':thumb').catch(() => null);
+  if (t) return t;
+  return await dbGet(id).catch(() => null);
+}
+
+//==================================================================
+// 机票夹元数据（localStorage）
+//==================================================================
+function tripsRead() {
+  try {
+    const raw = localStorage.getItem(TRIPS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+function tripsWrite(list) {
+  try { localStorage.setItem(TRIPS_KEY, JSON.stringify(list)); }
+  catch (e) { console.warn('localStorage 写入失败', e); }
+}
+function tripsAdd(t) {
+  const list = tripsRead();
+  list.unshift(t);
+  tripsWrite(list);
+  refreshTripsCount();
+}
+async function tripsRemove(id) {
+  tripsWrite(tripsRead().filter(t => t.id !== id));
+  try { await dbDel(id); } catch {}
+  try { await dbDel(id + ':thumb'); } catch {}    // 顺手清缩略图，避免 IDB 越长越大
+  refreshTripsCount();
+}
+function refreshTripsCount() {
+  const n = tripsRead().length;
+  const el = $('trips-count');
+  if (el) el.textContent = String(n);
+}
+
+//==================================================================
+// 并发锁（同 origin 全局，跨标签页）
+//==================================================================
+let bc = null;
+try { bc = new BroadcastChannel(BC_NAME); } catch {}
+
+function busyGet() {
+  try {
+    const raw = localStorage.getItem(BUSY_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    if (!v || typeof v !== 'object') return null;
+    if (!v.started_at || (Date.now() - v.started_at) > BUSY_TTL_MS) {
+      // 过期视为无效
+      localStorage.removeItem(BUSY_KEY);
+      return null;
+    }
+    return v;
+  } catch { return null; }
+}
+function busyClaim(meta) {
+  // 如果当前 busy 已属本 tab，则合并字段（不重置 started_at），保留进行中任务的真实开始时间
+  const prev = busyGet();
+  const base = (prev && prev.tab_id === TAB_ID) ? prev : { tab_id: TAB_ID, started_at: Date.now() };
+  const v = Object.assign({}, base, {
+    lat: meta?.lat ?? base.lat ?? null,
+    lng: meta?.lng ?? base.lng ?? null,
+    trip_id: meta?.trip_id ?? base.trip_id ?? null,
+    job_id: meta?.job_id ?? base.job_id ?? null,
+  });
+  localStorage.setItem(BUSY_KEY, JSON.stringify(v));
+  if (bc) bc.postMessage({ type: 'busy', value: v });
+  updateBusyUI(v);
+}
+function busyRelease() {
+  const cur = busyGet();
+  if (cur && cur.tab_id !== TAB_ID) return; // 别人的锁不释放
+  localStorage.removeItem(BUSY_KEY);
+  if (bc) bc.postMessage({ type: 'idle' });
+  updateBusyUI(null);
+}
+function isBusyHere() {
+  const v = busyGet();
+  return !!(v && v.tab_id === TAB_ID);
+}
+function isBusyElsewhere() {
+  const v = busyGet();
+  return !!(v && v.tab_id !== TAB_ID);
+}
+
+function updateBusyUI(v) {
+  const hint = $('hint');
+  if (!hint) return;
+  if (v && v.tab_id !== TAB_ID) {
+    hint.classList.remove('hidden');
+    hint.classList.add('busy');
+    hint.textContent = '🛫 栗栗熊正在另一个标签页出差，请稍候再点';
+  } else if (!v) {
+    hint.classList.remove('busy');
+    hint.textContent = '👉 缩放并点击地图，看栗栗熊去那里吃什么';
+  }
+  // 同步禁用确认按钮
+  const goBtn = document.getElementById('go-btn');
+  if (goBtn) goBtn.disabled = !!(v && v.tab_id !== TAB_ID);
+}
+
+// 跨标签页同步
+window.addEventListener('storage', (e) => {
+  if (e.key === BUSY_KEY) updateBusyUI(busyGet());
+  if (e.key === TRIPS_KEY) {
+    refreshTripsCount();
+    redrawHistoryMarkers();
+  }
+});
+if (bc) bc.onmessage = (ev) => {
+  const d = ev.data;
+  if (d && (d.type === 'busy' || d.type === 'idle')) updateBusyUI(busyGet());
+  if (d && d.type === 'trips_changed') {
+    refreshTripsCount();
+    redrawHistoryMarkers();
+  }
+};
+
+// 注意：以前的 pagehide 会自动 busyRelease，但现在任务在 server 端持续运行，
+// 手机切走时 pagehide 也会触发——一旦释放锁，回来就以为没在做事，导致丢图。
+// 因此这里不再释放：busy 在 BUSY_TTL_MS 内有效，下次打开会查 server 拿到当前 job 状态。
+// 周期性兜底（万一锁过期但残留）
+setInterval(() => {
+  const v = busyGet();
+  updateBusyUI(v);
+}, 3000);
+
+//==================================================================
+// AMap 加载（仅 AMap，没有任何回退）
+//==================================================================
+function loadAmap() {
+  return new Promise((resolve, reject) => {
+    if (window.AMap) return resolve();
+    if (!AMAP_KEY || AMAP_KEY.length < 16 || AMAP_KEY.startsWith('__')) {
+      return reject(new Error('AMAP_KEY 未注入，请确认 .env 已配置并通过 server.py 启动'));
+    }
+    // 关键：securityJsCode 必须在 webapi.amap.com/maps 脚本之前设置，
+    // 否则 v2 API 报 USERKEY_PLAT_NOMATCH，base tile 鉴权降级
+    if (AMAP_SECURITY_CODE && !AMAP_SECURITY_CODE.startsWith('__')) {
+      window._AMapSecurityConfig = { securityJsCode: AMAP_SECURITY_CODE };
+    } else {
+      console.warn('[AMap] AMAP_SECURITY_CODE 未配置，base tile 可能糊；请在 .env 加 AMAP_SECURITY_CODE');
+    }
+    const s = document.createElement('script');
+    s.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(AMAP_KEY)}`;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('高德 SDK 加载失败（检查网络/Key）'));
+    document.head.appendChild(s);
+  });
+}
+
+//==================================================================
+// 参考图预加载
+//==================================================================
+const refBlobs = [];
+async function loadRefs() {
+  for (const url of REF_FILES) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('参考图加载失败: ' + url);
+    refBlobs.push(await r.blob());
+  }
+}
+
+//==================================================================
+// 地图
+//==================================================================
+let map;
+let pendingMarker = null;
+let pendingLatLng = null;
+const historyMarkers = new Map(); // trip_id -> AMap.Marker
+let homeMarker = null;
+let satLayer = null;
+
+function makePinDom(klass) {
+  const e = document.createElement('div');
+  e.className = klass;
+  // 修复：marker DOM 的 mousedown 会冒泡到地图容器，AMap 误以为是地图拖动起手，
+  // 导致松开鼠标后地图仍跟随鼠标移动（"粘鼠标"）。在源头阻断即可。
+  const swallow = (ev) => { ev.stopPropagation(); };
+  e.addEventListener('mousedown', swallow);
+  e.addEventListener('touchstart', swallow, { passive: true });
+  return e;
+}
+
+function initMap() {
+  map = new AMap.Map('globe', {
+    viewMode: '3D',
+    pitch: 35,
+    rotation: 0,
+    zoom: 4,
+    zooms: [3, 20],            // 提升最大缩放到 20，避免「拉最近还是糊一块」
+    center: [HOME.lng, HOME.lat],
+    mapStyle: 'amap://styles/normal',
+    showBuildingBlock: true,
+    skyColor: '#d9ebe8',
+    features: ['bg', 'road', 'building', 'point'],
+  });
+
+  homeMarker = new AMap.Marker({
+    position: [HOME.lng, HOME.lat],
+    content: makePinDom('pin-home'),
+    offset: new AMap.Pixel(0, 0),
+    anchor: 'center',
+    title: HOME.label + ' · 出发地',
+    zIndex: 90,
+  });
+  homeMarker.setMap(map);
+
+  map.on('click', (e) => {
+    const lng = e.lnglat.getLng();
+    const lat = e.lnglat.getLat();
+    onLocationPicked({ lat, lng });
+  });
+
+  redrawHistoryMarkers();
+}
+
+function switchView(view) {
+  // 关键：不再二次调用 setMapStyle —— 初始化时已经设过 normal style，
+  // 再次设置会触发 style URL 重新拉取，部分 key/网络环境下会导致底图空白。
+  // 2D / 3D 仅在俯仰角上区分；卫星只在普通底图上叠加 satellite tile layer。
+  if (view === '2D') {
+    if (satLayer) { satLayer.setMap(null); satLayer = null; }
+    map.setPitch(0, true, 400);
+    map.setRotation(0, true, 400);
+  } else if (view === '3D') {
+    if (satLayer) { satLayer.setMap(null); satLayer = null; }
+    map.setPitch(55, true, 400);   // 加大俯仰角，让 3D 和 2D 视觉差异明显
+  } else if (view === 'satellite') {
+    if (!satLayer) {
+      satLayer = new AMap.TileLayer.Satellite();
+      satLayer.setMap(map);
+    }
+    map.setPitch(35, true, 400);
+  }
+  document.querySelectorAll('.view-switch button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+  logEvent('view_switch', { view });
+}
+
+function addPendingMarker(lat, lng) {
+  if (pendingMarker) { pendingMarker.setMap(null); pendingMarker = null; }
+  pendingMarker = new AMap.Marker({
+    position: [lng, lat],
+    content: makePinDom('pin-pending'),
+    anchor: 'center',
+    offset: new AMap.Pixel(0, 0),
+    zIndex: 100,
+  });
+  pendingMarker.setMap(map);
+  pendingLatLng = { lat, lng };
+}
+
+function clearPending() {
+  if (pendingMarker) { pendingMarker.setMap(null); pendingMarker = null; }
+  pendingLatLng = null;
+}
+
+// 用 trip.id 给倾斜角度做"稳定随机"：同一个 trip 每次刷新角度不变，
+// 避免视觉抖动（红色随机会让用户感觉地图在颤）
+function _stableTilt(id) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = ((h << 5) - h + id.charCodeAt(i)) | 0;
+  // 映射到 -5..+5 度（含 0，避免常数倾斜）
+  const t = ((h % 11) + 11) % 11 - 5;
+  return t;
+}
+
+function makePhotoPin(trip) {
+  const root = makePinDom('pin-photo');
+  const tilt = _stableTilt(trip.id || (trip.lat + '_' + trip.lng));
+  // 既要响应 hover 时把倾斜归零，又要保留初始倾斜 -> 用 inline 变量配 CSS
+  root.style.transform = 'rotate(' + tilt + 'deg)';
+  root.style.position = 'relative';  // 让 .pp-label 的 absolute 锚定在 pin 上
+  root.title = trip.place_short || formatLatLng(trip.lat, trip.lng);
+
+  const thumb = document.createElement('div');
+  thumb.className = 'pp-thumb';
+  const inner = document.createElement('div');
+  inner.className = 'pp-inner';
+  thumb.appendChild(inner);
+  root.appendChild(thumb);
+
+  // 异步加载缩略图：marker 用 thumb（~30KB）替代原图（~1MB），省 RAM
+  // 失败也保留 polaroid 外壳（用户看到"正在显影"比看到红点更有期待感）
+  dbGetThumbOrFull(trip.id).then((blob) => {
+    if (!blob) return;
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(blob);
+    img.alt = '';
+    inner.appendChild(img);
+  }).catch(() => {});
+
+  // hover tooltip（地名）
+  const label = document.createElement('div');
+  label.className = 'pp-label';
+  label.textContent = trip.place_short || formatLatLng(trip.lat, trip.lng);
+  root.appendChild(label);
+
+  return root;
+}
+
+//==================================================================
+// 「全球墙」公开点图层：切到 feed tab 时显示所有公开图的散点，
+// 让用户立刻感觉栗栗熊遍布全球。区别于个人 polaroid 用小橙点。
+//==================================================================
+const publicMarkers = [];
+let _publicMarkersLoaded = false;
+let _publicMarkersLoading = false;
+
+async function loadPublicMarkers() {
+  if (!map) return;
+  if (_publicMarkersLoading) return;
+  // 已加载过：直接显示
+  if (_publicMarkersLoaded) {
+    for (const m of publicMarkers) m.setMap(map);
+    return;
+  }
+  _publicMarkersLoading = true;
+  try {
+    const r = await fetch('/api/feed/markers?limit=2000', {
+      cache: 'no-store', credentials: 'same-origin',
+    });
+    if (!r.ok) return;
+    const j = await r.json().catch(() => null);
+    const items = (j && j.items) || [];
+    for (const it of items) {
+      if (typeof it.lat !== 'number' || typeof it.lng !== 'number') continue;
+      const dot = document.createElement('div');
+      dot.className = 'pin-public' + (it.is_mine ? ' is-mine' : '');
+      dot.title = it.is_mine ? '你的足迹' : '栗栗熊到过这里';
+      const m = new AMap.Marker({
+        position: [it.lng, it.lat],
+        content: dot,
+        anchor: 'center',
+        offset: new AMap.Pixel(0, 0),
+        zIndex: 50,                          // 个人 polaroid 是 100+，公开点垫底
+        bubble: true,
+      });
+      m.setMap(map);
+      publicMarkers.push(m);
+    }
+    _publicMarkersLoaded = true;
+  } catch (e) {
+    // ignore — feed 是次要功能，挂了不该影响主流程
+  } finally {
+    _publicMarkersLoading = false;
+  }
+}
+
+function clearPublicMarkers() {
+  for (const m of publicMarkers) m.setMap(null);
+}
+
+function redrawHistoryMarkers() {
+  if (!map) return;
+  // 清掉旧的
+  for (const m of historyMarkers.values()) m.setMap(null);
+  historyMarkers.clear();
+  const trips = tripsRead();
+  // 较新的 trip 给更高 zIndex，新机票漂在旧机票上面
+  trips.forEach((t, idx) => {
+    if (typeof t.lat !== 'number' || typeof t.lng !== 'number') return;
+    const dom = makePhotoPin(t);
+    const m = new AMap.Marker({
+      position: [t.lng, t.lat],
+      content: dom,
+      anchor: 'bottom-center',  // polaroid 底边贴在经纬度上（像把照片"插"在地上）
+      offset: new AMap.Pixel(0, 4),  // 微调让"插点"在卡片下沿稍下方
+      zIndex: 100 + (trips.length - idx),  // 新的更高
+      bubble: false,
+    });
+    m.on('click', (ev) => {
+      if (ev && ev.originEvent) ev.originEvent.stopPropagation();
+      openTrip(t.id);
+    });
+    m.setMap(map);
+    historyMarkers.set(t.id, m);
+  });
+}
+
+//==================================================================
+// 点击 → 确认 → 生成
+//==================================================================
+// 当前 pending 坐标的地名 promise（点击瞬间触发，generate 时复用）
+let _pendingPlacePromise = null;
+
+function onLocationPicked({ lat, lng }) {
+  if (isBusyElsewhere()) {
+    flashBusyHint();
+    return;
+  }
+  if (isBusyHere()) {
+    // 自己正在生成 —— 让用户先等
+    flashBusyHint();
+    return;
+  }
+  logEvent('pick', { lat, lng });
+  $('hint').classList.add('hidden');
+  addPendingMarker(lat, lng);
+  map.setZoomAndCenter(Math.max(map.getZoom(), 7), [lng, lat], false, 800);
+  // 点击瞬间就开始解析地名，confirm 卡片可以异步增强
+  _pendingPlacePromise = resolvePlace(lat, lng).catch(() => null);
+  showConfirm(lat, lng);
+}
+
+function flashBusyHint() {
+  const h = $('hint');
+  h.classList.remove('hidden');
+  h.classList.add('busy');
+  h.textContent = '🛫 栗栗熊正在出差，请等当前生成完成';
+}
+
+function showConfirm(lat, lng) {
+  $('where').innerHTML = '';
+  $('where').appendChild(el('span', null, '栗栗熊要去哪儿？'));
+  $('where').appendChild(el('small', null, '请确认目的地'));
+  $('panel').classList.add('open');
+
+  const body = $('panel-body');
+  body.innerHTML = '';
+
+  // 地名分两行展示：主标题 placeNode（地名）+ 副信息 coordNode（经纬度）
+  // 三态：resolving（反查中）→ resolved（成功）→ unresolved（5s 超时兜底）
+  const placeNode = el('div', { class: 'place-name resolving' }, '正在确认地点…');
+  const coordNode = el('div', { class: 'coord-detail' }, formatLatLng(lat, lng));
+
+  // 异步增强：reactToResolve 只在用户还停留在同一坐标时生效
+  function reactToResolve(p) {
+    if (!pendingLatLng || pendingLatLng.lat !== lat || pendingLatLng.lng !== lng) return;
+    placeNode.classList.remove('resolving');
+    if (p && p.place_short) {
+      // 成功态：显示完整地名（"东京 · 日本" 或 "东京"），加 country 后缀让人一眼分辨海内外
+      placeNode.textContent = p.place_short + (p.country && p.place_short.indexOf(p.country) < 0 ? ' · ' + p.country : '');
+    } else {
+      // 兜底态：坐标接管主信息
+      placeNode.classList.add('unresolved');
+      placeNode.textContent = '暂时叫不出名字';
+    }
+  }
+
+  if (_pendingPlacePromise) {
+    // 5s 兜底超时：避免反查卡死时一直挂着 "正在确认地点…"
+    Promise.race([
+      _pendingPlacePromise,
+      new Promise((r) => setTimeout(() => r(null), 5000)),
+    ]).then(reactToResolve, () => reactToResolve(null));
+  } else {
+    // 没有 pending promise（理论不应该到这），直接兜底
+    reactToResolve(null);
+  }
+
+  const card = el('div', { class: 'confirm-card' },
+    el('div', { class: 'mascot' }, el('img', { src: 'lilibear_logo.png', alt: '' })),
+    el('div', { class: 'ask' }, '要去这里画一张美食地图吗？'),
+    placeNode,
+    coordNode,
+    // 等待预期升级：从灰色 note 拎到独立的胶囊里，基于真实数据"3-5 分钟"
+    el('div', { class: 'eta' }, '手绘需要 3-5 分钟'),
+    el('div', { class: 'note' }, '单张约 1024×3072 长图'),
+    buildFeedToggleRow(),
+    el('div', { class: 'btn-row' },
+      el('button', { class: 'btn primary', id: 'go-btn', type: 'button', onclick: onConfirmGo }, '出发！开始绘制'),
+      el('button', { class: 'btn ghost', id: 'cancel-btn', type: 'button', onclick: onConfirmCancel }, '换个地方'),
+    ),
+  );
+  body.appendChild(card);
+  if (isBusyElsewhere()) $('go-btn').disabled = true;
+}
+
+// —— 全球墙：上传偏好（默认上传） ——
+const FEED_PREF_KEY = 'lilibear.upload_to_feed.v1';
+function feedPrefRead() {
+  try {
+    const v = localStorage.getItem(FEED_PREF_KEY);
+    if (v === null) return true;  // 默认勾上
+    return v === '1';
+  } catch { return true; }
+}
+function feedPrefWrite(checked) {
+  try { localStorage.setItem(FEED_PREF_KEY, checked ? '1' : '0'); } catch {}
+}
+function currentVisibility() {
+  return feedPrefRead() ? 'public' : 'private';
+}
+
+// 确认面板上的"上传到全球墙"开关行；勾选状态从 localStorage 读
+function buildFeedToggleRow() {
+  const checked = feedPrefRead();
+  const cb = el('input', { type: 'checkbox', id: 'feed-toggle' });
+  cb.checked = checked;
+  cb.addEventListener('change', () => feedPrefWrite(cb.checked));
+  const lbl = el('label', { for: 'feed-toggle', class: 'feed-toggle-label' },
+    cb,
+    el('span', null, '上传到全球墙（其他人可以看到这张图）'),
+  );
+  return el('div', { class: 'feed-toggle-row' }, lbl);
+}
+
+function onConfirmGo() {
+  if (!pendingLatLng) return;
+  if (isBusyElsewhere() || isBusyHere()) {
+    flashBusyHint();
+    return;
+  }
+  const { lat, lng } = pendingLatLng;
+  clearPending();
+  generate(lat, lng);
+}
+
+function onConfirmCancel() {
+  if (pendingLatLng) logEvent('cancel', pendingLatLng);
+  clearPending();
+  _pendingPlacePromise = null;
+  $('panel').classList.remove('open');
+  $('hint').classList.remove('hidden');
+}
+
+//==================================================================
+// 地名解析：高德 Geocoder（国内）→ 后端 Nominatim 代理（海外）
+//==================================================================
+// v2: 双源并行决策（之前 v1 高德优先会把金门等地误判，旧缓存需失效）
+const PLACE_CACHE_KEY = 'lilibear.places.v2';
+const PLACE_CACHE_MAX = 200;
+
+function placeCacheKey(lat, lng) {
+  return lat.toFixed(2) + ',' + lng.toFixed(2);
+}
+function placeCacheRead() {
+  try { return JSON.parse(localStorage.getItem(PLACE_CACHE_KEY) || '{}') || {}; }
+  catch { return {}; }
+}
+function placeCacheWrite(obj) {
+  try {
+    const keys = Object.keys(obj);
+    if (keys.length > PLACE_CACHE_MAX) {
+      // 简单截断：保留最后写入的 PLACE_CACHE_MAX 条
+      const trimmed = {};
+      for (const k of keys.slice(-PLACE_CACHE_MAX)) trimmed[k] = obj[k];
+      obj = trimmed;
+    }
+    localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify(obj));
+  } catch {}
+}
+
+// 高德 Geocoder 单例
+let _amapGeocoderPromise = null;
+function getAmapGeocoder() {
+  if (_amapGeocoderPromise) return _amapGeocoderPromise;
+  _amapGeocoderPromise = new Promise((resolve) => {
+    if (!window.AMap) return resolve(null);
+    try {
+      AMap.plugin('AMap.Geocoder', () => {
+        try { resolve(new AMap.Geocoder({ extensions: 'base' })); }
+        catch { resolve(null); }
+      });
+    } catch { resolve(null); }
+  });
+  return _amapGeocoderPromise;
+}
+
+// 高德 addressComponent 字段在空时返回空数组 []，需要正规化
+function _amapStr(v) { return Array.isArray(v) ? '' : (v || ''); }
+
+async function resolveByAmap(lat, lng) {
+  const g = await getAmapGeocoder();
+  if (!g) return null;
+  return new Promise((resolve) => {
+    let done = false;
+    const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, 3500);
+    try {
+      g.getAddress([lng, lat], (status, result) => {
+        if (done) return;
+        done = true; clearTimeout(timer);
+        if (status !== 'complete' || !result || !result.regeocode) return resolve(null);
+        const rg = result.regeocode;
+        const ac = rg.addressComponent || {};
+        const province = _amapStr(ac.province);
+        const city     = _amapStr(ac.city);
+        const district = _amapStr(ac.district);
+        const full     = _amapStr(rg.formattedAddress);
+        // 高德海外坐标返回空 formatted_address，整体视为不可用，让上层走 Nominatim
+        if (!province && !city && !district && !full) return resolve(null);
+        const cityCore = (city || province).replace(/市$|省$|特别行政区$|自治区$/, '');
+        let placeShort = '';
+        if (cityCore && district) placeShort = cityCore + ' · ' + district;
+        else if (cityCore)        placeShort = cityCore;
+        else if (district)        placeShort = district;
+        else if (province)        placeShort = province.replace(/省$/, '');
+        if (!placeShort) return resolve(null);
+        resolve({
+          place_short: placeShort,
+          country: '中国',
+          state: province,
+          city,
+          district,
+          full,
+          source: 'amap',
+        });
+      });
+    } catch { done = true; clearTimeout(timer); resolve(null); }
+  });
+}
+
+async function resolveByServer(lat, lng) {
+  try {
+    const r = await fetch('/api/geocode?lat=' + encodeURIComponent(lat) + '&lng=' + encodeURIComponent(lng));
+    if (!r.ok) return null;
+    const j = await r.json();
+    return (j && j.place_short) ? j : null;
+  } catch { return null; }
+}
+
+// 主入口：返回 {place_short, country, state, city, district, full, source} 或 {place_short:''}
+//
+// 双源并行：高德对中国大陆精度最高（到区/街道），但海外/港澳台返回空或错误归属
+//（例：金门 → 厦门）。Nominatim 全球准确但国内不如高德精细。
+// 决策：以 Nominatim 的 country 为真值，仅当确认是「中国大陆」时优先用高德结果。
+async function resolvePlace(lat, lng) {
+  const ck = placeCacheKey(lat, lng);
+  const cache = placeCacheRead();
+  if (cache[ck]) return cache[ck];
+
+  const SERVER_TIMEOUT = 6000;
+  const [amap, server] = await Promise.all([
+    resolveByAmap(lat, lng).catch(() => null),
+    Promise.race([
+      resolveByServer(lat, lng).catch(() => null),
+      new Promise((r) => setTimeout(() => r(null), SERVER_TIMEOUT)),
+    ]),
+  ]);
+
+  // 仅当 Nominatim 确认是中国大陆（且不是港澳台）时优先用高德
+  const nominaCountry = server && server.country;
+  const isMainlandCN = nominaCountry === '中国';
+
+  let chosen;
+  if (isMainlandCN && amap && amap.place_short) {
+    chosen = amap;
+  } else if (server && server.place_short) {
+    chosen = server;
+  } else if (amap && amap.place_short) {
+    // 服务器没结果且高德有：通常是公共实例慢/失败，国内坐标也能用高德兜底
+    chosen = amap;
+  } else {
+    chosen = { place_short: '', source: 'none' };
+  }
+
+  cache[ck] = chosen;
+  placeCacheWrite(cache);
+  return chosen;
+}
+
+//==================================================================
+// 正向地名搜索（用现有 AMap.Geocoder.getLocation，无需后端 / 重启 server）
+//==================================================================
+// 已知局限：AMap 对中国大陆精度高（街道级），海外仅 "best effort"
+// 后续后端加 Nominatim 正向搜索可补海外覆盖（要重启 server，目前避免）
+async function searchPlace(query) {
+  const q = (query || '').trim();
+  if (!q) return null;
+  const g = await getAmapGeocoder();
+  if (!g) return null;
+  return new Promise((resolve) => {
+    let done = false;
+    const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, 5000);
+    try {
+      g.getLocation(q, (status, result) => {
+        if (done) return;
+        done = true; clearTimeout(timer);
+        if (status !== 'complete' || !result || !result.geocodes || !result.geocodes.length) {
+          return resolve(null);
+        }
+        // 取第一个匹配（高德按相关度排序，confidence 最高的在前）
+        const top = result.geocodes[0];
+        const loc = top.location;  // LngLat 实例
+        if (!loc) return resolve(null);
+        // LngLat 既支持 .getLng/.getLat 也有 .lng/.lat 属性，安全起见两个都试
+        const lng = (typeof loc.getLng === 'function') ? loc.getLng() : loc.lng;
+        const lat = (typeof loc.getLat === 'function') ? loc.getLat() : loc.lat;
+        if (typeof lat !== 'number' || typeof lng !== 'number') return resolve(null);
+        resolve({
+          lat, lng,
+          formatted: top.formattedAddress || q,
+          level: top.level || '',   // "城市" / "区县" / "兴趣点" 等，有助于决定飞到的 zoom
+        });
+      });
+    } catch { done = true; clearTimeout(timer); resolve(null); }
+  });
+}
+
+//==================================================================
+// 搜索框 UI 控制
+//==================================================================
+function showSearchError(msg) {
+  const er = $('search-error');
+  if (!er) return;
+  er.textContent = msg;
+  er.classList.add('visible');
+  // 3s 后自动消失
+  clearTimeout(window._searchErrTimer);
+  window._searchErrTimer = setTimeout(() => er.classList.remove('visible'), 3000);
+}
+function hideSearchError() {
+  const er = $('search-error');
+  if (er) er.classList.remove('visible');
+}
+
+// 根据 AMap level 决定飞过去的 zoom（更聚焦的地点用更近的 zoom）
+function pickZoomForLevel(level) {
+  if (!level) return 8;
+  if (level === '兴趣点' || level === '门牌号' || level === '地标性建筑') return 14;
+  if (level === '道路' || level === '道路交叉路口') return 13;
+  if (level === '区县' || level === '商圈') return 11;
+  if (level === '城市') return 9;
+  if (level === '省') return 6;
+  return 8;
+}
+
+async function onSearchSubmit() {
+  const input = $('search-input');
+  const btn = $('search-go');
+  if (!input || !btn) return;
+  const q = input.value.trim();
+  if (!q) return;
+  // 并发禁止重复点击
+  btn.classList.add('searching');
+  btn.textContent = '搜索中…';
+  hideSearchError();
+  try {
+    // busy 状态下也允许搜索（只飞过去，不触发生成）
+    const hit = await searchPlace(q);
+    if (!hit) {
+      showSearchError('没找到「' + q + '」。试试更明确的名字（如「日本东京塔」）');
+      return;
+    }
+    if (!map) return;
+    // 飞过去（不立即触发 confirm，先让用户看到位置）
+    const targetZoom = pickZoomForLevel(hit.level);
+    map.setZoomAndCenter(Math.max(targetZoom, map.getZoom()), [hit.lng, hit.lat], false, 1200);
+    // 移动端：搜索成功，关闭顶部搜索栏让用户看到地图飞行
+    closeMobileSearch();
+    // 飞行结束后弹出确认卡片（如果不忙）
+    setTimeout(() => {
+      if (isBusyElsewhere() || isBusyHere()) return;  // 正在生成时不打扰
+      onLocationPicked({ lat: hit.lat, lng: hit.lng });
+    }, 1250);
+    logEvent('search', { query: q, lat: hit.lat, lng: hit.lng, level: hit.level });
+  } finally {
+    btn.classList.remove('searching');
+    btn.textContent = '出发去';
+  }
+}
+
+//==================================================================
+// 调用上游图像生成
+//==================================================================
+function formatLatLng(lat, lng) {
+  const a = Math.abs(lat).toFixed(2) + '°' + (lat >= 0 ? 'N' : 'S');
+  const b = Math.abs(lng).toFixed(2) + '°' + (lng >= 0 ? 'E' : 'W');
+  return '(' + a + ', ' + b + ')';
+}
+
+// 统一展示：有地名时 "厦门 · 思明区 (24.44°N, 118.10°E)"，无地名时纯坐标
+function formatLocation(place, lat, lng) {
+  const coord = formatLatLng(lat, lng);
+  const short = place && place.place_short;
+  return short ? (short + ' ' + coord) : coord;
+}
+
+// 机票夹用：有地名只显示地名，没地名回落到经纬度
+function placeOrCoord(trip) {
+  return trip.place_short || formatLatLng(trip.lat, trip.lng);
+}
+
+// ==========================================================================
+// buildPrompt —— 生产端唯一 prompt 信源
+// 唯一变量 = location 字符串（地名 + 经纬度），其余完全固定。
+// 菜单 / 场景氛围 / 海洋兜底 全部交给模型基于 location 自己推断。
+//
+// SYNC CONTRACT: 必须与 gen_styles_v2.py:build_prompt_for_location() 字面一致。
+//   修改任何常量块后，请同步另一端并跑 dry-run diff 验证。
+// ==========================================================================
+
+// 与 v1 IDENTITY / TEXT_RULE / BOUNDARY (gen_styles.py:41-72) 字面一致
+const PROMPT_IDENTITY =
+  "Identity lock (use provided reference images as canonical mascot): " +
+  "the protagonist is LiliBear — a SMALL RED PANDA (not a raccoon, not a brown bear), " +
+  "rust-orange fur, cream face with dark eye masks, rounded ears with white tufts, " +
+  "long fluffy tail with alternating reddish-brown and cream rings, plump rounded body, " +
+  "innocent gentle expression. Keep face shape, fur color palette, ear shape and tail " +
+  "ring pattern identical across all panels.";
+
+const PROMPT_TEXT_RULES =
+  "Text output rules: only short Simplified-Chinese dish names (each label ≤ 6 chinese " +
+  "characters), plus the city name header. No English captions inside food modules, " +
+  "no fake watermarks, no signatures, no QR codes, no garbled characters.";
+
+const PROMPT_BOUNDARY =
+  "Hard avoid: photorealistic photography, 3D CGI render, anime moe-girl style, " +
+  "human characters of any kind (only LiliBear is allowed as a character), multiple " +
+  "mascots fighting for focus, inconsistent fur color between panels, long sentences, " +
+  "logos of real restaurant brands.";
+
+// v2_01_day_trail layout 骨架 (与 gen_styles_v2.py:LAYOUT_SKELETON 字面一致)
+const PROMPT_LAYOUT_SKELETON =
+  "LAYOUT SKELETON = a single hand-drawn meandering vermilion trail that snakes " +
+  "from the top of the canvas down to the bottom like a river or a Chinese paper-cut " +
+  "path, dividing the 1024x3072 vertical canvas into 6-7 'stop stations' along its " +
+  "length. The trail bends left-and-right alternately and NEVER becomes a straight " +
+  "column. At each station place ONE locally-authentic signature dish for this place, " +
+  "rendered with appetizing watercolor detail, beside a small ink-stamp showing the " +
+  "hour of day (eg 卯时 5:00, 辰时 8:00, 午时 12:00, 申时 16:00, 戌时 20:00, " +
+  "亥时 22:00) and a short Simplified-Chinese dish-name label (≤6 characters) in " +
+  "handwritten brush pen. LiliBear appears EXACTLY ONCE per station as the SAME " +
+  "single traveler — at dawn yawning on a folded bicycle, mid-morning sniffing steam " +
+  "from a bowl, noon sitting cross-legged eating, afternoon balancing a snack on the " +
+  "head, evening clinking a cup, night belly-up napping — with tiny watercolor " +
+  "footprints / wheel tracks / dotted lines connecting consecutive stations along " +
+  "the trail. Top header: a circular postage-stamp seal containing the location name " +
+  "(中文 + EN if available) and the coordinates. Bottom footer: a tiny embroidered " +
+  "cushion with LiliBear curled asleep, signed '晚安 · GOOD NIGHT'. ABSOLUTELY NO " +
+  "uniform stacked rectangular food modules — the rhythm is a winding one-day " +
+  "journey, not a list.";
+
+const PROMPT_VISUAL_SYSTEM =
+  "  Medium: Traditional warm watercolor on cream paper, wet-on-wet blooms with " +
+  "visible paper grain and a faint pencil under-sketch peeking through. The trail " +
+  "itself is painted in a single vermilion brush stroke that occasionally goes " +
+  "dry-brush.\n" +
+  "  Palette: Cream paper #FBF3E4 background, vermilion #C8492C trail accent, sage " +
+  "green, dusty rose, soft mustard, ink brown #4A342A for outlines and time-stamps.\n" +
+  "  Line: Wobbly hand-drawn ink contours with dry-brush tips; the trail itself is " +
+  "one continuous brush gesture.\n" +
+  "  Mood: A cozy slow-Sunday-afternoon travel sketchbook telling one bear's day in " +
+  "one place.\n" +
+  "  Extras: Tiny watercolor splashes near dishes; faint pencil grid behind the paper " +
+  "for hand-bound notebook feel; one small red square seal near the bottom signature.";
+
+function buildPrompt(lat, lng, place) {
+  // 与后端 build_prompt_for_location(location_label) 同源:
+  //   有地名 → "厦门 · 思明区 (24.44°N, 118.10°E)"
+  //   无地名 → 纯坐标 "(40.71°N, 74.01°W)"
+  const where = formatLocation(place, lat, lng);
+
+  const parts = [
+    "TASK: Create an illustrated vertical food-map poster (1024x3072, 1:3) of " +
+    where + ", starring LiliBear the Xiamen-University-Food-Society mascot.",
+
+    "SUBJECT (identity lock — strictly preserve from reference images):\n" +
+    PROMPT_IDENTITY,
+
+    "STRUCTURE / LAYOUT (unique compositional skeleton — under no circumstances " +
+    "fall back to a column of equally-spaced stacked rectangular food modules):\n" +
+    PROMPT_LAYOUT_SKELETON,
+
+    "MENU & AMBIENT (no predefined data — derive both from the location above):\n" +
+    "Select 5-7 of THE most iconic, locally-authentic signature dishes / street " +
+    "snacks / signature drinks of " + where + ". Choose only foods that " +
+    "real locals would name as representative; do NOT invent fusion dishes; do NOT " +
+    "fall back to globally generic foods unless they are genuinely the local " +
+    "signature. Each dish must be visually recognizable on first glance.\n" +
+    "Derive the ambient atmosphere (climate, vegetation, architecture, signage, " +
+    "color mood) from your knowledge of this exact location — do not generalize.\n" +
+    "Ocean / lake / wilderness fallback: if the coordinates fall on open water or " +
+    "uninhabited terrain, automatically substitute with the closest well-known " +
+    "coastal port / island / city and use ITS signature local cuisine and ambient " +
+    "instead (do not draw an empty sea).",
+
+    "VISUAL SYSTEM (medium / palette / line / mood — hand-drawn watercolor family):\n" +
+    PROMPT_VISUAL_SYSTEM,
+
+    "TEXT RULES:\n" + PROMPT_TEXT_RULES,
+
+    "PRESERVE FROM REFERENCE: LiliBear's species, fur color zones, ear shape, " +
+    "tail ring pattern, plump body proportions, warm naive expression.",
+
+    "CHANGE FROM REFERENCE: rendering medium per the VISUAL SYSTEM above, the " +
+    "COMPOSITIONAL SKELETON per the LAYOUT above (this is the most important " +
+    "change and the whole point of v2), the environment, and which dishes are " +
+    "shown.",
+
+    "AVOID:\n" + PROMPT_BOUNDARY +
+    "\nAdditionally STRICTLY AVOID: a vertical column of equally-spaced rectangular " +
+    "food modules stacked from top to bottom — this is the v1 default trap; the " +
+    "LAYOUT above exists specifically to break it.",
+
+    "Final note: keep visual rhythm consistent with the chosen LAYOUT skeleton; do " +
+    "NOT crowd; leave 4-6% breathing space at top and bottom edges.",
+  ];
+  return parts.join("\n\n");
+}
+
+function genTripId() {
+  const arr = new Uint8Array(6);
+  (window.crypto || window.msCrypto).getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// —— /api/jobs/* 任务系统：把"前端长 fetch"换成"server 后台跑 + 短轮询"。
+// 设计目标：手机切走 / 锁屏 / 刷新都不丢图。
+const JOB_POLL_INTERVAL_MS = 2500;
+const JOB_POLL_MAX_GAP_MS  = 10 * 60 * 1000;  // 单次轮询累计静默超过 10 分钟视为失败兜底
+
+async function generate(lat, lng) {
+  const tripId = genTripId();
+  busyClaim({ lat, lng, trip_id: tripId });
+  // 等待地名 resolve（已在 onLocationPicked 触发）；最多等 2s，超时则纯坐标
+  const placePromise = _pendingPlacePromise || resolvePlace(lat, lng).catch(() => null);
+  _pendingPlacePromise = null;
+  const place = await Promise.race([
+    placePromise,
+    new Promise((r) => setTimeout(() => r(null), 2000)),
+  ]).catch(() => null);
+  renderLoading(lat, lng, place);
+  logEvent('generate_start', { lat, lng, trip_id: tripId });
+  const prompt = buildPrompt(lat, lng, place);
+
+  // 1) 向 server 发起任务（这一步还是 fetch；如果这一步失败说明本地服务没起来，直接报错）
+  let jobId = null;
+  try {
+    const fd = new FormData();
+    fd.append('model', 'gpt-image-2');
+    fd.append('prompt', prompt);
+    fd.append('sizes', JSON.stringify(SIZE_CANDIDATES));
+    fd.append('n', '1');
+    fd.append('tab_id', TAB_ID);
+    fd.append('trip_id', tripId);
+    fd.append('lat', String(lat));
+    fd.append('lng', String(lng));
+    fd.append('place_short', (place && place.place_short) || '');
+    fd.append('place_full',  (place && place.full) || '');
+    fd.append('visibility', currentVisibility());
+    // 多张参考图：用 image0, image1 ... 命名（server 端按下标取，避免 multipart 同名覆盖）
+    refBlobs.forEach((b, i) => fd.append('image' + i, b, 'ref' + i + '.jpg'));
+    const r = await fetch('/api/jobs/start', { method: 'POST', body: fd });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j || !j.job_id) {
+      const msg = (j && j.error && j.error.message) || ('HTTP ' + r.status);
+      throw new Error(msg);
+    }
+    jobId = j.job_id;
+  } catch (e) {
+    const msg = (e && e.message) || String(e);
+    renderError(msg);
+    logEvent('generate_fail', { lat, lng, trip_id: tripId, msg });
+    busyRelease();
+    return;
+  }
+
+  // 把 job_id 写进 busy 锁，便于刷新/切回后恢复
+  busyClaim({ lat, lng, trip_id: tripId, job_id: jobId });
+
+  // 2) 轮询直到 done/failed/cancelled
+  await pollJobUntilDone({ jobId, tripId, lat, lng, place });
+}
+
+// 把"轮询 + 拿图 + 落盘 + 渲染"拆出来，generate() 和"启动恢复"都能用。
+async function pollJobUntilDone({ jobId, tripId, lat, lng, place }) {
+  let consecutiveFail = 0;
+  let lastOkAt = Date.now();
+  try {
+    while (true) {
+      await sleep(JOB_POLL_INTERVAL_MS);
+      // 用户已在另一处取消（busy 锁被释放）→ 退出
+      const cur = busyGet();
+      if (!cur || cur.tab_id !== TAB_ID || cur.job_id !== jobId) return;
+
+      let j = null;
+      try {
+        const r = await fetch('/api/jobs/' + jobId, { cache: 'no-store' });
+        if (r.ok) {
+          j = await r.json();
+          consecutiveFail = 0;
+          lastOkAt = Date.now();
+        } else if (r.status === 404) {
+          renderError('任务记录已过期或丢失');
+          logEvent('generate_fail', { lat, lng, trip_id: tripId, msg: 'job 404' });
+          busyRelease();
+          return;
+        } else {
+          consecutiveFail++;
+        }
+      } catch {
+        // 网络抖动：手机切走/锁屏时 fetch 抛错很常见，继续轮询。
+        consecutiveFail++;
+      }
+
+      if (!j) {
+        if (Date.now() - lastOkAt > JOB_POLL_MAX_GAP_MS) {
+          renderError('连不上本地服务，已等待超过 10 分钟');
+          logEvent('generate_fail', { lat, lng, trip_id: tripId, msg: 'poll silence' });
+          busyRelease();
+          return;
+        }
+        continue;
+      }
+
+      if (j.status === 'running' || j.status === 'queued') continue;
+
+      if (j.status === 'cancelled') {
+        renderError('任务已取消');
+        busyRelease();
+        return;
+      }
+
+      if (j.status === 'failed') {
+        renderError(j.error || '生成失败');
+        logEvent('generate_fail', { lat, lng, trip_id: tripId, msg: j.error || 'failed' });
+        busyRelease();
+        return;
+      }
+
+      if (j.status === 'done') {
+        // 拉图片 blob（带重试）
+        let blob = null;
+        for (let i = 0; i < 3 && !blob; i++) {
+          try {
+            const ir = await fetch('/api/jobs/' + jobId + '/image', { cache: 'no-store' });
+            if (ir.ok) blob = await ir.blob();
+            else await sleep(800);
+          } catch { await sleep(800); }
+        }
+        if (!blob) {
+          renderError('图片下载失败');
+          busyRelease();
+          return;
+        }
+        await dbPutWithThumb(tripId, blob);
+        const trip = {
+          id: tripId,
+          lat, lng,
+          ts: Date.now(),
+          size: j.size || '',
+          duration_sec: Math.round(j.duration_sec || 0),
+          place_short: (place && place.place_short) || j.place_short || '',
+          place_full:  (place && place.full)        || j.place_full  || '',
+        };
+        tripsAdd(trip);
+        if (bc) bc.postMessage({ type: 'trips_changed' });
+        redrawHistoryMarkers();
+        const blobUrl = URL.createObjectURL(blob);
+        renderResult(blobUrl, trip);
+        logEvent('generate_ok', { lat, lng, trip_id: tripId, size: trip.size, duration_sec: trip.duration_sec });
+        busyRelease();
+        return;
+      }
+
+      // 未知状态 → 兜底失败
+      renderError('未知任务状态：' + j.status);
+      busyRelease();
+      return;
+    }
+  } catch (e) {
+    renderError((e && e.message) || '生成失败');
+    busyRelease();
+  }
+}
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+async function cancelJobOnServer(jobId) {
+  try {
+    await fetch('/api/jobs/' + jobId + '/cancel', { method: 'POST', keepalive: true });
+  } catch {}
+}
+
+// 启动时调用：本 tab 上次留下了 job_id（手机切走/锁屏/刷新）→ 接回去继续轮询
+async function resumeBusyJobIfAny() {
+  const v = busyGet();
+  if (!v || v.tab_id !== TAB_ID) return;            // 没锁 / 别的 tab 的锁 → 不管
+  if (!v.job_id) {
+    // 旧版本残留：没 job_id 的 busy 不再有意义，清掉
+    busyRelease();
+    return;
+  }
+  // 先查 server 看任务到底什么状态
+  let j = null;
+  try {
+    const r = await fetch('/api/jobs/' + v.job_id, { cache: 'no-store' });
+    if (r.ok) j = await r.json();
+    else if (r.status === 404) j = { status: 'missing' };
+  } catch { /* 网络抖 → 当作 running 走轮询 */ }
+
+  const status = (j && j.status) || 'running';
+  if (status === 'done' || status === 'failed' || status === 'cancelled' || status === 'missing') {
+    // 已结束：渲染对应 UI 然后释放
+    if (status === 'done') {
+      // 异步拿图、入库、渲染
+      try {
+        const ir = await fetch('/api/jobs/' + v.job_id + '/image', { cache: 'no-store' });
+        if (ir.ok) {
+          const blob = await ir.blob();
+          const tripId = v.trip_id || genTripId();
+          await dbPutWithThumb(tripId, blob);
+          const trip = {
+            id: tripId,
+            lat: v.lat, lng: v.lng,
+            ts: (j.finished_at ? Math.round(j.finished_at * 1000) : Date.now()),
+            size: j.size || '',
+            duration_sec: Math.round(j.duration_sec || 0),
+            place_short: j.place_short || '',
+            place_full:  j.place_full  || '',
+          };
+          // 不重复加入机票夹（如果用户在另一个 tab 已经入库过会有副本，但 trip_id 唯一所以无害）
+          // 简单去重：tripsRead 里 id 已存在的话跳过
+          if (!tripsRead().some(t => t.id === tripId)) {
+            tripsAdd(trip);
+            if (bc) bc.postMessage({ type: 'trips_changed' });
+            redrawHistoryMarkers();
+          }
+          renderResult(URL.createObjectURL(blob), trip);
+          logEvent('resume_done', { job_id: v.job_id, trip_id: tripId });
+        } else {
+          renderError('结果获取失败');
+        }
+      } catch {
+        renderError('结果获取失败');
+      }
+    } else if (status === 'missing') {
+      // server 已 GC 掉记录 —— 静默清状态即可（不打扰用户）
+      logEvent('resume_missing', { job_id: v.job_id });
+    } else {
+      renderError(status === 'cancelled' ? '上次任务已取消' : ((j && j.error) || '生成失败'));
+      logEvent('resume_terminal', { job_id: v.job_id, status });
+    }
+    busyRelease();
+    return;
+  }
+
+  // 还在跑：恢复 loading UI，接管轮询
+  logEvent('resume_running', { job_id: v.job_id });
+  // place 信息可能 server 已经存了；没有也无所谓，renderLoading 会兜底成"远方"
+  const place = (j && j.place_short) ? { place_short: j.place_short, full: j.place_full || '' } : null;
+  // 异步去高德 / Nominatim 拿（如果 server 没存 place）
+  if (!place) {
+    resolvePlace(v.lat, v.lng).then((p) => {
+      if (!p) return;
+      // 若用户还在 loading 视图，刷一下文案
+      const w = $('where');
+      if (w && /正在生成/.test(w.textContent || '')) {
+        w.innerHTML = '';
+        w.appendChild(el('span', null, '栗栗熊在 ' + (p.place_short || formatLatLng(v.lat, v.lng))));
+        w.appendChild(el('small', null, '正在生成美食地图…'));
+      }
+    }).catch(() => {});
+  }
+  renderLoading(v.lat, v.lng, place);
+  pollJobUntilDone({
+    jobId: v.job_id,
+    tripId: v.trip_id || genTripId(),
+    lat: v.lat, lng: v.lng,
+    place,
+  });
+}
+
+async function dataUrlOrUrlToBlob(s) {
+  if (s.startsWith('data:')) {
+    const r = await fetch(s);
+    return await r.blob();
+  }
+  const r = await fetch(s);
+  if (!r.ok) throw new Error('图片下载失败');
+  return await r.blob();
+}
+
+//==================================================================
+// 面板渲染
+//==================================================================
+function renderLoading(lat, lng, place) {
+  const placeShort = (place && place.place_short) || '';
+  const displayPlace = placeShort || '远方';
+
+  $('where').innerHTML = '';
+  $('where').appendChild(el('span', null, '栗栗熊在 ' + (placeShort || formatLatLng(lat, lng))));
+  $('where').appendChild(el('small', null, '正在生成美食地图…'));
+
+  const body = $('panel-body');
+  body.innerHTML = '';
+
+  const quipNode = el('div', { class: 'quip' },
+    LOADING_STAGES[0].main.replace('${place}', displayPlace), el('span', { class: 'dots' }));
+  const subQuipNode = el('div', { class: 'sub-quip' },
+    LOADING_STAGES[0].sub.replace('${place}', displayPlace));
+  const timerNode = el('div', { class: 'timer' }, '已用 ', el('span', { id: 'timer' }, '0:00'));
+
+  const card = el('div', { class: 'loading-card' },
+    el('div', { class: 'mascot' }, el('img', { src: 'lilibear_logo.png', alt: '' })),
+    quipNode,
+    subQuipNode,
+    timerNode,
+  );
+
+  // 「上次画过的」缩略图：从机票夹抽 1 张（不抽当前正在画的、不抽自己）
+  // 让等待时间不全空
+  try {
+    const trips = tripsRead().filter(t => t.lat !== lat || t.lng !== lng);
+    if (trips.length > 0) {
+      const peek = trips[Math.floor(Math.random() * Math.min(trips.length, 6))];
+      const peekCard = el('div', { class: 'loading-peek' });
+      const thumbBox = el('div', { class: 'peek-thumb' });
+      // 异步加载缩略图（IndexedDB）
+      dbGet(peek.id).then((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        thumbBox.appendChild(el('img', { src: url, alt: '' }));
+      }).catch(() => {});
+      peekCard.appendChild(thumbBox);
+      peekCard.appendChild(el('div', { class: 'peek-text' },
+        el('div', { class: 'peek-label' }, '边等边看：上次画的'),
+        el('div', null, peek.place_short || '一个角落'),
+        el('div', { class: 'peek-place' }, formatLatLng(peek.lat, peek.lng)),
+      ));
+      card.appendChild(peekCard);
+    }
+  } catch {}
+
+  body.appendChild(card);
+
+  // 定时器：每秒驱动文案和计时
+  const t0 = Date.now();
+  let lastStageIdx = 0;
+  if (window._timerId) clearInterval(window._timerId);
+  window._timerId = setInterval(() => {
+    const timerEl = $('timer');
+    const quipEl = body.querySelector('.quip');
+    const subEl = body.querySelector('.sub-quip');
+    if (!timerEl || !quipEl) { clearInterval(window._timerId); return; }
+    const elapsed = Math.floor((Date.now() - t0) / 1000);
+    timerEl.textContent = fmtMmSs(elapsed);
+
+    const stage = pickLoadingStage(elapsed);
+    const stageIdx = LOADING_STAGES.indexOf(stage);
+    if (stageIdx !== lastStageIdx) {
+      // 文案切换：先淡出再淡入，避免突变
+      quipEl.classList.add('fading');
+      if (subEl) subEl.classList.add('fading');
+      setTimeout(() => {
+        quipEl.innerHTML = '';
+        quipEl.appendChild(document.createTextNode(stage.main.replace('${place}', displayPlace)));
+        quipEl.appendChild(el('span', { class: 'dots' }));
+        quipEl.classList.remove('fading');
+        if (subEl) {
+          subEl.textContent = stage.sub.replace('${place}', displayPlace);
+          subEl.classList.remove('fading');
+        }
+      }, 280);
+      lastStageIdx = stageIdx;
+    }
+
+    // > 360s 显示"可以取消重试"暗示（不强迫，给出路）
+    if (elapsed > 360 && !card.querySelector('.cancel-hint')) {
+      card.appendChild(el('div', { class: 'cancel-hint' },
+        '等久了？',
+        el('a', { href: '#', onclick: (e) => { e.preventDefault();
+          if (confirm('确定取消并换一个地方？已经生成的进度会丢失。')) {
+            const cur = busyGet();
+            if (cur && cur.job_id) cancelJobOnServer(cur.job_id);
+            try { busyRelease(); } catch {}
+            if (window._timerId) { clearInterval(window._timerId); window._timerId = null; }
+            onConfirmCancel();
+          }
+        }}, '取消重试'),
+      ));
+    }
+  }, 1000);
+  // 不再需要随机 QUIPS 切换的 _quipId 定时器（stage 驱动）
+  if (window._quipId) { clearInterval(window._quipId); window._quipId = null; }
+}
+
+function renderResult(blobUrl, trip) {
+  if (window._timerId) clearInterval(window._timerId);
+  if (window._quipId) clearInterval(window._quipId);
+
+  // trip 里已经有 place_short / place_full（generate 时注入）
+  const placeForDisplay = { place_short: trip.place_short || '' };
+  const placeText = formatLocation(placeForDisplay, trip.lat, trip.lng);
+  $('where').innerHTML = '';
+  $('where').appendChild(document.createTextNode('栗栗熊到了 ' + placeText));
+  $('where').appendChild(el('small', null,
+    '用时 ' + trip.duration_sec + 's · ' + trip.size + ' · 已存机票夹'));
+
+  const body = $('panel-body');
+  body.innerHTML = '';
+  body.appendChild(el('img', {
+    class: 'result-img',
+    src: blobUrl,
+    alt: '栗栗熊在 ' + placeText + ' 的美食地图',
+  }));
+
+  // —— 三按钮 CTA：完成态高峰情绪期，给三个出口避免用户直接关页面 ——
+  const shareText = '我让栗栗熊去了' + placeText + '，画了张当地美食地图 🌍 你也试试';
+  const shareBtn = el('button', {
+    class: 'share-cta primary', type: 'button',
+    onclick: () => shareNow(shareText),
+  }, '📮 分享给朋友');
+  const againBtn = el('button', {
+    class: 'share-cta', type: 'button',
+    onclick: () => {
+      $('panel').classList.remove('open');
+      if (!busyGet()) $('hint').classList.remove('hidden');
+      logEvent('cta_again', { trip_id: trip.id });
+    },
+  }, '🎨 再画一个');
+  const wallBtn = el('button', {
+    class: 'share-cta', type: 'button',
+    onclick: () => { renderTripsPanel('feed'); logEvent('cta_wall', { trip_id: trip.id }); },
+  }, '🌍 看看全球墙');
+  body.appendChild(el('div', { class: 'share-cta-row' }, shareBtn, againBtn, wallBtn));
+
+  // 兜底：保留下载链接，老用户仍可直接保存
+  const dl = el('a', {
+    href: blobUrl,
+    download: '栗栗熊_' + trip.lat.toFixed(2) + '_' + trip.lng.toFixed(2) + '.png',
+  }, '直接下载');
+  body.appendChild(el('div', { class: 'result-meta' },
+    '右键图片可保存 · ', dl, ' · ',
+    el('a', { href: '#', onclick: (e) => { e.preventDefault(); openTrips(); } }, '回到机票夹')));
+}
+
+// —— 分享：navigator.share 优先；微信内嵌走"右上角 ⋯"提示；其它走剪贴板 ——
+function isInWeChat() {
+  return /MicroMessenger/i.test(navigator.userAgent || '');
+}
+
+async function shareNow(text) {
+  const url = location.origin + '/';
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: '栗栗熊环游世界', text, url });
+      logEvent('share_click', { method: 'system_share' });
+      return;
+    } catch (e) {
+      // 用户取消或权限失败 → 走兜底
+    }
+  }
+  if (isInWeChat()) {
+    alert('点击右上角 ⋯ → 分享给朋友 / 分享到朋友圈');
+    logEvent('share_click', { method: 'wechat_hint' });
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    alert('链接已复制：' + url);
+    logEvent('share_click', { method: 'clipboard' });
+  } catch {
+    prompt('复制下方链接发给朋友：', url);
+    logEvent('share_click', { method: 'prompt' });
+  }
+}
+
+function renderError(msg) {
+  if (window._timerId) clearInterval(window._timerId);
+  if (window._quipId) clearInterval(window._quipId);
+  $('where').innerHTML = '';
+  $('where').appendChild(document.createTextNode('栗栗熊迷路了'));
+  $('where').appendChild(el('small', null, '请再试一次或换个地方'));
+  const body = $('panel-body');
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'err' }, String(msg)));
+}
+
+//==================================================================
+// 机票夹（列表 + 查看）
+//==================================================================
+function fmtTime(ts) {
+  const d = new Date(ts);
+  const pad = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+       + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+let _currentTripsTab = 'mine';  // 'mine' | 'feed'
+
+async function openTrips() {
+  renderTripsPanel(_currentTripsTab);
+}
+
+function renderTripsPanel(tab) {
+  _currentTripsTab = tab;
+  $('panel').classList.add('open');
+  $('hint').classList.add('hidden');
+  $('where').innerHTML = '';
+  $('where').appendChild(document.createTextNode(tab === 'mine' ? '🎫 机票夹' : '🌍 全球墙'));
+  $('where').appendChild(el('small', null,
+    tab === 'mine' ? '点开任意一张回看，× 删除' : '所有人画过的地方'
+  ));
+  const body = $('panel-body');
+  body.innerHTML = '';
+  body.appendChild(buildTripsTabs());
+  if (tab === 'mine') {
+    renderMineList(body);
+    clearPublicMarkers();                  // 退出全球墙：地球仪上的散点也撤掉
+  } else {
+    renderFeedList(body);
+    loadPublicMarkers();                   // 进入全球墙：在地球仪上点亮所有公开点
+  }
+  logEvent(tab === 'mine' ? 'open_trips' : 'open_feed', {});
+}
+
+function buildTripsTabs() {
+  const wrap = el('div', { class: 'trips-tabs' });
+  const mkTab = (name, label) => {
+    const b = el('button', {
+      class: 'trips-tab' + (_currentTripsTab === name ? ' active' : ''),
+      type: 'button',
+      onclick: () => renderTripsPanel(name),
+    }, label);
+    return b;
+  };
+  wrap.appendChild(mkTab('mine', '🎫 我的'));
+  wrap.appendChild(mkTab('feed', '🌍 全球墙'));
+  return wrap;
+}
+
+function renderMineList(body) {
+  const list = tripsRead();
+  if (!list.length) {
+    body.appendChild(el('div', { class: 'trips-empty' },
+      '还没有行程，去地图上点一个地方吧 ✈️'));
+    return;
+  }
+  for (const t of list) {
+    const card = el('div', { class: 'trip-card', onclick: () => openTrip(t.id) });
+    const thumb = el('div', { class: 'thumb' });
+    card.appendChild(thumb);
+    const latlngNode = el('div', { class: 'latlng' }, placeOrCoord(t));
+    card.appendChild(el('div', { class: 'meta' },
+      latlngNode,
+      el('div', { class: 'when' }, fmtTime(t.ts) + ' · ' + (t.size || '') + ' · ' + (t.duration_sec || '?') + 's'),
+    ));
+    card.appendChild(el('button', {
+      class: 'del', title: '删除',
+      onclick: async (e) => { e.stopPropagation(); await tripsRemove(t.id); openTrips(); redrawHistoryMarkers(); },
+    }, '×'));
+    body.appendChild(card);
+    dbGet(t.id).then(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      thumb.appendChild(el('img', { src: url, alt: '' }));
+    });
+  }
+}
+
+// —— 全球墙：拉 /api/feed 分页渲染 ——
+function renderFeedList(body) {
+  const grid = el('div', { class: 'feed-grid', id: 'feed-grid' });
+  const lm = el('div', { class: 'feed-loadmore-row', id: 'feed-loadmore-row' });
+  body.appendChild(grid);
+  body.appendChild(lm);
+
+  let cursor = null;
+  let loading = false;
+  let stopped = false;
+
+  async function loadMore() {
+    if (loading || stopped) return;
+    loading = true;
+    lm.innerHTML = '';
+    lm.appendChild(el('div', { class: 'feed-loading' }, '加载中…'));
+    let url = '/api/feed?limit=20';
+    if (cursor != null) url += '&cursor=' + encodeURIComponent(cursor);
+    try {
+      const r = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+      const j = await r.json();
+      // 切走了？放弃挂载
+      if (_currentTripsTab !== 'feed' || !document.getElementById('feed-grid')) { stopped = true; return; }
+      for (const it of (j.items || [])) {
+        grid.appendChild(buildFeedCard(it));
+      }
+      cursor = j.next_cursor;
+      lm.innerHTML = '';
+      if (cursor == null) {
+        const total = grid.children.length;
+        if (total === 0) {
+          // 完全空：友好提示
+          body.removeChild(grid);
+          body.removeChild(lm);
+          body.appendChild(el('div', { class: 'trips-empty' },
+            '🌍 墙上还没图，去画第一张吧'));
+          stopped = true;
+          return;
+        }
+        lm.appendChild(el('div', { class: 'feed-end' }, '— 到底了 —'));
+      } else {
+        const btn = el('button', { class: 'feed-loadmore', type: 'button' }, '看更多');
+        btn.onclick = loadMore;
+        lm.appendChild(btn);
+      }
+    } catch (e) {
+      if (stopped) return;
+      lm.innerHTML = '';
+      const errNode = el('div', { class: 'feed-err' }, '加载失败，点击重试');
+      errNode.onclick = loadMore;
+      lm.appendChild(errNode);
+    } finally {
+      loading = false;
+    }
+  }
+  loadMore();
+}
+
+function buildFeedCard(it) {
+  const card = el('div', { class: 'feed-card', onclick: () => openFeedItem(it) });
+  const thumb = el('div', { class: 'thumb' });
+  thumb.appendChild(el('img', {
+    src: '/api/feed/thumb/' + it.id,         // 缩略图：长边 320 / jpeg 78 / ~30-80KB
+    loading: 'lazy',
+    decoding: 'async',
+    alt: '',
+  }));
+  card.appendChild(thumb);
+  const place = it.place_short || (it.lat != null ? formatLatLng(it.lat, it.lng) : '某处');
+  const who = it.author_nickname || '匿名旅人';
+  const when = fmtTime((it.created_at || 0) * 1000);
+  card.appendChild(el('div', { class: 'feed-meta' },
+    el('div', { class: 'feed-place' }, place),
+    el('div', { class: 'feed-author' }, '@' + who + (it.is_mine ? ' · 你' : '')),
+    el('div', { class: 'feed-when' }, when),
+  ));
+  if (it.is_mine && it.visibility === 'private') {
+    card.appendChild(el('div', { class: 'feed-private' }, '🔒 仅自己'));
+  }
+  return card;
+}
+
+function openFeedItem(it) {
+  $('panel').classList.add('open');
+  $('hint').classList.add('hidden');
+  const place = it.place_short || (it.lat != null ? formatLatLng(it.lat, it.lng) : '某处');
+  const who = it.author_nickname || '匿名旅人';
+  $('where').innerHTML = '';
+  $('where').appendChild(document.createTextNode('🌍 ' + place));
+  $('where').appendChild(el('small', null,
+    '@' + who + (it.is_mine ? '（你）' : '') + ' · ' + fmtTime((it.created_at || 0) * 1000)));
+  const body = $('panel-body');
+  body.innerHTML = '';
+  body.appendChild(el('img', { class: 'result-img', src: '/api/feed/image/' + it.id, alt: '' }));
+
+  const meta = el('div', { class: 'result-meta' });
+  // 在地图上看
+  const goMap = el('a', { href: '#' }, '在地图上看');
+  goMap.onclick = (e) => {
+    e.preventDefault();
+    if (map && it.lat != null && it.lng != null) {
+      map.setZoomAndCenter(Math.max(map.getZoom(), 6), [it.lng, it.lat], false, 600);
+      $('panel').classList.remove('open');
+      if (!busyGet()) $('hint').classList.remove('hidden');
+    }
+  };
+  meta.appendChild(goMap);
+  meta.appendChild(document.createTextNode(' · '));
+  const back = el('a', { href: '#' }, '回到全球墙');
+  back.onclick = (e) => { e.preventDefault(); renderTripsPanel('feed'); };
+  meta.appendChild(back);
+
+  // 自己的图：可切 visibility
+  if (it.is_mine) {
+    meta.appendChild(document.createTextNode(' · '));
+    const tog = el('a', { href: '#' }, it.visibility === 'public' ? '改为私有' : '改为公开');
+    tog.onclick = async (e) => {
+      e.preventDefault();
+      const newV = it.visibility === 'public' ? 'private' : 'public';
+      try {
+        const r = await fetch('/api/feed/' + it.id + '/visibility', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ visibility: newV }),
+          credentials: 'same-origin',
+        });
+        const j = await r.json().catch(() => null);
+        if (!r.ok) throw new Error((j && j.error && j.error.message) || 'HTTP ' + r.status);
+        it.visibility = newV;
+        tog.textContent = newV === 'public' ? '改为私有' : '改为公开';
+        logEvent('visibility_changed', { id: it.id, to: newV });
+      } catch (err) {
+        alert((err && err.message) || '改失败');
+      }
+    };
+    meta.appendChild(tog);
+  }
+  body.appendChild(meta);
+}
+
+async function openTrip(id) {
+  const list = tripsRead();
+  const trip = list.find(t => t.id === id);
+  if (!trip) return openTrips();
+  $('panel').classList.add('open');
+  $('hint').classList.add('hidden');
+  $('where').innerHTML = '';
+  $('where').appendChild(document.createTextNode('栗栗熊到过 ' + placeOrCoord(trip)));
+  $('where').appendChild(el('small', null, fmtTime(trip.ts) + ' · ' + (trip.size || '') + ' · ' + (trip.duration_sec || '?') + 's'));
+  const body = $('panel-body');
+  body.innerHTML = '';
+  const blob = await dbGet(id);
+  if (!blob) {
+    body.appendChild(el('div', { class: 'err' },
+      '图片找不到了（可能换浏览器或清过 IndexedDB）。'));
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  body.appendChild(el('img', { class: 'result-img', src: url, alt: '' }));
+  const dl = el('a', {
+    href: url,
+    download: '栗栗熊_' + trip.lat.toFixed(2) + '_' + trip.lng.toFixed(2) + '.png',
+  }, '直接下载');
+  body.appendChild(el('div', { class: 'result-meta' },
+    '右键图片可保存 · ', dl, ' · ',
+    el('a', { href: '#', onclick: (e) => { e.preventDefault(); openTrips(); } }, '回到列表')));
+  // 把地图也飞过去
+  if (map) {
+    map.setZoomAndCenter(Math.max(map.getZoom(), 6), [trip.lng, trip.lat], false, 600);
+  }
+  logEvent('open_trip', { trip_id: id, lat: trip.lat, lng: trip.lng });
+
+  // 历史 trip 修复：v1 时期 place_short 可能是错的（如金门被误判为厦门）。
+  // 异步重解析一次，若与现存不一致则回写并刷新当前展示。
+  resolvePlace(trip.lat, trip.lng).then((p) => {
+    const fresh = (p && p.place_short) || '';
+    if (fresh === (trip.place_short || '')) return;
+    const all = tripsRead();
+    const idx = all.findIndex((x) => x.id === id);
+    if (idx < 0) return;
+    all[idx].place_short = fresh;
+    all[idx].place_full = (p && p.full) || all[idx].place_full || '';
+    tripsWrite(all);
+    // 如果用户还在这张 trip 的视图上，刷新 where 文案
+    const w = $('where');
+    if (w && /栗栗熊到过/.test(w.textContent || '')) {
+      const refreshed = { ...trip, place_short: fresh };
+      w.innerHTML = '';
+      w.appendChild(document.createTextNode('栗栗熊到过 ' + placeOrCoord(refreshed)));
+      w.appendChild(el('small', null, fmtTime(trip.ts) + ' · ' + (trip.size || '') + ' · ' + (trip.duration_sec || '?') + 's'));
+    }
+  }).catch(() => {});
+}
+
+//==================================================================
+// 事件绑定
+//==================================================================
+$('close-btn').onclick = () => {
+  // 生成进行中：点 x 视为"取消生成"，弹 confirm 防误触
+  if (isBusyHere()) {
+    const cur = busyGet();
+    if (!confirm('栗栗熊正在画图，关闭会取消这次生成，确定吗？')) return;
+    if (cur && cur.job_id) cancelJobOnServer(cur.job_id);
+    if (window._timerId) { clearInterval(window._timerId); window._timerId = null; }
+    busyRelease();
+    logEvent('cancel_busy', { job_id: cur && cur.job_id, lat: cur && cur.lat, lng: cur && cur.lng });
+  }
+  $('panel').classList.remove('open');
+  if (pendingLatLng) onConfirmCancel();
+  if (!busyGet()) $('hint').classList.remove('hidden');
+  clearPublicMarkers();                        // 关 panel 退出全球墙模式：撤掉地球仪上的公开点散点
+};
+$('trips-btn').onclick = openTrips;
+
+// 搜索框：按钮点击 / 回车都触发；输入时清掉旧错误
+$('search-go').onclick = onSearchSubmit;
+$('search-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    onSearchSubmit();
+  } else if (e.key === 'Escape') {
+    e.target.blur();
+    hideSearchError();
+    closeMobileSearch();
+  }
+});
+$('search-input').addEventListener('input', () => hideSearchError());
+
+// —— 移动端搜索按钮：toggle 展开 / 关闭 ——
+function openMobileSearch() {
+  document.body.classList.add('mobile-search-open');
+  // animation 300ms 内 focus，让键盘弹起跟动画同步
+  setTimeout(() => {
+    const inp = $('search-input');
+    if (inp) inp.focus();
+  }, 160);
+}
+function closeMobileSearch() {
+  if (!document.body.classList.contains('mobile-search-open')) return;
+  document.body.classList.remove('mobile-search-open');
+  hideSearchError();
+  const inp = $('search-input');
+  if (inp) inp.blur();
+}
+$('mobile-search-btn').onclick = openMobileSearch;
+$('search-veil').onclick = closeMobileSearch;
+
+//==================================================================
+// 首次访问欢迎气泡
+//==================================================================
+
+//==================================================================
+// 首次访问欢迎气泡
+//==================================================================
+const WELCOME_KEY = 'lilibear.welcomed.v1';
+function showWelcomeIfFirstTime() {
+  try {
+    if (localStorage.getItem(WELCOME_KEY)) return;
+  } catch { return; }  // 隐私模式 localStorage 不可用 —— 直接跳过
+  // 不挡 boot 动画，错开 600ms 让 boot 先渐隐
+  setTimeout(() => {
+    const bubble = $('welcome-bubble');
+    const veil = $('welcome-veil');
+    if (!bubble || !veil) return;
+    bubble.classList.add('visible');
+    veil.classList.add('visible');
+    // 隐藏底部的 hint 气泡（避免重复信息）
+    $('hint').classList.add('hidden');
+    // 异步拉社会证明（公开点数）；新手 boot 慢一点没关系，统计行后到也不影响主气泡渲染
+    fetchAndShowSocialProof();
+  }, 600);
+}
+
+// 拉公开点数填到 welcome-stat。少于阈值就不展示，避免显得冷清。
+async function fetchAndShowSocialProof() {
+  const stat = $('welcome-stat');
+  if (!stat) return;
+  try {
+    const r = await fetch('/api/feed/markers?limit=2000', { cache: 'no-store', credentials: 'same-origin' });
+    if (!r.ok) return;
+    const j = await r.json().catch(() => null);
+    const n = (j && j.items && j.items.length) || 0;
+    if (n < 5) return;                    // 太少则隐藏，避免社会证明反向奏效
+    const have = $('welcome-stat-have');
+    const next = $('welcome-stat-next');
+    if (have) have.textContent = n;
+    if (next) next.textContent = n + 1;
+    stat.hidden = false;
+  } catch (e) {
+    // 静默失败 —— 没拉到就不展示
+  }
+}
+function dismissWelcome() {
+  const bubble = $('welcome-bubble');
+  const veil = $('welcome-veil');
+  if (!bubble) return;
+  bubble.classList.remove('visible');
+  bubble.classList.add('gone');
+  veil.classList.remove('visible');
+  // 写 localStorage，下次不再出现
+  try { localStorage.setItem(WELCOME_KEY, '1'); } catch {}
+  // 让用户看到底部 hint 气泡（继续引导"点地球"）
+  setTimeout(() => {
+    if (!busyGet()) $('hint').classList.remove('hidden');
+  }, 350);
+  logEvent('welcome_dismissed', {});
+}
+$('welcome-go').onclick = dismissWelcome;
+$('welcome-veil').onclick = dismissWelcome;
+// 按 ESC 关闭
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('welcome-bubble').classList.contains('visible')) {
+    dismissWelcome();
+  }
+});
+
+//==================================================================
+// 用户身份：/api/me + 昵称弹窗
+//==================================================================
+let _me = null;                              // { user_id, nickname } 缓存
+const NICK_SKIP_KEY = 'lilibear.nick_skipped.v1';
+
+async function fetchMe() {
+  try {
+    const r = await fetch('/api/me', { cache: 'no-store', credentials: 'same-origin' });
+    if (!r.ok) return null;
+    _me = await r.json();
+    return _me;
+  } catch { return null; }
+}
+async function saveNickname(nick) {
+  const r = await fetch('/api/me', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nickname: nick }),
+    credentials: 'same-origin',
+  });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) throw new Error((j && j.error && j.error.message) || ('HTTP ' + r.status));
+  _me = j;
+  return j;
+}
+
+function showNicknameModal(opts) {
+  const force = !!(opts && opts.force);
+  const bubble = $('nick-bubble');
+  const veil = $('nick-veil');
+  const input = $('nick-input');
+  const err = $('nick-err');
+  if (!bubble) return;
+  err.textContent = '';
+  input.value = (_me && _me.nickname) || '';
+  bubble.classList.add('visible');
+  veil.classList.add('visible');
+  setTimeout(() => input.focus(), 100);
+  // 标记当前是否是 force（force 时 skip 还是允许，但不再写 skip flag —— 用户既然主动改名，下次启动还是按已有状态判断）
+  bubble.dataset.force = force ? '1' : '0';
+}
+function hideNicknameModal() {
+  $('nick-bubble').classList.remove('visible');
+  $('nick-veil').classList.remove('visible');
+}
+
+async function trySaveNicknameFromInput() {
+  const err = $('nick-err');
+  const v = ($('nick-input').value || '').trim();
+  if (!v) { err.textContent = '名字不能空着'; return; }
+  if (v.length > 16) { err.textContent = '名字不要超过 16 个字符'; return; }
+  if (/[<>"']/.test(v)) { err.textContent = '不能包含 < > " \' 这些字符'; return; }
+  try {
+    await saveNickname(v);
+    err.textContent = '';
+    hideNicknameModal();
+    logEvent('nick_set', { len: v.length });
+  } catch (e) {
+    err.textContent = (e && e.message) || '保存失败';
+  }
+}
+
+$('nick-save').onclick = trySaveNicknameFromInput;
+$('nick-skip').onclick = () => {
+  try { localStorage.setItem(NICK_SKIP_KEY, '1'); } catch {}
+  hideNicknameModal();
+  logEvent('nick_skipped', {});
+};
+$('nick-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); trySaveNicknameFromInput(); }
+  if (e.key === 'Escape') {
+    // 强制弹窗（用户主动改名）允许 Esc 关闭；首次引导也允许，等同 skip
+    if ($('nick-bubble').dataset.force === '1') {
+      hideNicknameModal();
+    } else {
+      try { localStorage.setItem(NICK_SKIP_KEY, '1'); } catch {}
+      hideNicknameModal();
+    }
+  }
+});
+$('nick-veil').onclick = () => {
+  // 点遮罩关闭，等同 skip（不强制要昵称）
+  if ($('nick-bubble').dataset.force !== '1') {
+    try { localStorage.setItem(NICK_SKIP_KEY, '1'); } catch {}
+  }
+  hideNicknameModal();
+};
+
+// 启动时：拉 /api/me，没昵称且没 skip 过 → 弹一次
+async function bootstrapMe() {
+  await fetchMe();
+  if (_me && !_me.nickname) {
+    let skipped = false;
+    try { skipped = localStorage.getItem(NICK_SKIP_KEY) === '1'; } catch {}
+    if (!skipped) {
+      // 让欢迎弹窗先（如果显示了），错开几秒
+      setTimeout(() => {
+        // 仅当没有其它 modal 占用时弹
+        if (!$('welcome-bubble').classList.contains('visible')) {
+          showNicknameModal({ force: false });
+        } else {
+          // 等欢迎气泡关闭后再弹
+          const t = setInterval(() => {
+            if (!$('welcome-bubble').classList.contains('visible')) {
+              clearInterval(t);
+              showNicknameModal({ force: false });
+            }
+          }, 400);
+        }
+      }, 800);
+    }
+  }
+}
+document.querySelectorAll('.view-switch button').forEach(b => {
+  b.onclick = () => switchView(b.dataset.view);
+});
+
+//==================================================================
+// 启动
+//==================================================================
+(async function main() {
+  try {
+    refreshTripsCount();
+    updateBusyUI(busyGet());
+    await Promise.all([loadRefs(), loadAmap()]);
+    initMap();
+    logEvent('boot_ok', {});
+    setTimeout(() => $('boot').classList.add('gone'), 800);
+    // boot OK 后，错开几百毫秒展示欢迎气泡（首次访问才显示）
+    showWelcomeIfFirstTime();
+    // 恢复正在跑的任务：手机切走/锁屏/刷新后，server 端任务可能还在继续。
+    // 拿 localStorage 里上次的 busy 信息 + job_id 去 server 拉状态。
+    resumeBusyJobIfAny();
+    // 拉当前用户信息；首次访问无昵称时引导弹窗
+    bootstrapMe();
+  } catch (e) {
+    $('boot').innerHTML = '';
+    $('boot').appendChild(el('div',
+      { style: 'color:#b8451f;font-family:\'ZCOOL KuaiLe\',sans-serif;font-size:18px;text-align:center;padding:0 20px' },
+      '启动失败',
+      el('br'),
+      el('span', { style: 'font-family:monospace;font-size:13px' }, (e && e.message) || String(e)),
+    ));
+    logEvent('boot_fail', { msg: (e && e.message) || String(e) });
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
