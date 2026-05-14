@@ -114,7 +114,7 @@ STATIC_WHITELIST_EXTS = ('.jpg', '.jpeg', '.png', '.webp')
 DMFOX_ALLOWED = re.compile(r'^([\w-]+/)*v1/images/(edits|generations)/?$')
 
 PROXIES = {
-    '/api/dmfox/': 'https://dm-fox.rjj.cc/',
+    '/api/dmfox/': 'https://image.token-recyclebin.com/',
 }
 
 
@@ -684,7 +684,7 @@ def _job_run_upstream(job_id, ref_blobs, prompt, sizes, model):
         _job_set_status(job_id, 'failed', error='IMAGE_API_KEY 未配置')
         return
 
-    upstream_url = 'https://dm-fox.rjj.cc/gptapi/v1/images/edits'
+    upstream_url = 'https://image.token-recyclebin.com/v1/images/edits'
     last_err = None
     ctx = ssl.create_default_context()
 
