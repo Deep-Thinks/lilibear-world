@@ -1910,23 +1910,27 @@ async function loadPublicMarkers() {
     if (!_publicMarkersBuilt) {
       for (const it of items) {
         if (typeof it.lat !== 'number' || typeof it.lng !== 'number') continue;
-        // 用 makePinDom 建圆点：它会阻断 mousedown/touchstart 冒泡，
-        // 否则按下圆点会被 AMap 误判为地图拖拽起手（"粘鼠标"）。
+        // 用 makePinDom 建圆点：它阻断 mousedown/touchstart 冒泡，
+        // 否则按下圆点会冒泡到地图容器，被 AMap 误判为地图拖拽起手（"粘鼠标"）。
         const dot = makePinDom('pin-public' + (it.is_mine ? ' is-mine' : ''));
         dot.title = (it.place_short ? it.place_short + ' · ' : '')
           + (it.is_mine ? '你的足迹（点击看图）' : '栗栗熊到过这里（点击看图）');
+        // 点圆点 → 直接弹出当地那张图（省得在全球墙里翻）。
+        // 关键：用 dot 自身的 DOM click，不用 AMap 的 marker.on('click')——
+        // mousedown 被 swallow 截断后 AMap 收不到、合成不出 marker click；
+        // 而 DOM click 是 mousedown 之后独立触发的事件，照常在 dot 上冒泡。
+        // stopPropagation 防止这次 click 继续冒到地图容器触发"地图取点"。
+        dot.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          openFeedItem({ ...it, visibility: 'public' });  // markers 仅含公开图
+        });
         const m = new AMap.Marker({
           position: [it.lng, it.lat],
           content: dot,
           anchor: 'center',
           offset: new AMap.Pixel(0, 0),
           zIndex: 50,                        // 个人 polaroid 是 100+，公开点垫底
-          bubble: false,                     // 自己处理 click，别冒泡成地图取点
-        });
-        // 点圆点 → 直接弹出当地生成的那张图（省得在全球墙里翻）
-        m.on('click', (ev) => {
-          if (ev && ev.originEvent) ev.originEvent.stopPropagation();
-          openFeedItem({ ...it, visibility: 'public' });  // markers 仅含公开图
+          bubble: false,
         });
         publicMarkers.push(m);
       }
