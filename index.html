@@ -736,6 +736,25 @@
     align-self: center;
   }
 
+  /* —— layer-toggle（地球仪上「全球足迹」散点图层开关）—— */
+  /* on 态用 accent 实心，让用户一眼看出散点正在显示 */
+  .layer-toggle {
+    padding: 0 13px;
+    font-size: 14px;
+    cursor: pointer;
+    gap: 6px;
+    align-items: center;
+  }
+  .layer-toggle:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--shadow);
+  }
+  .layer-toggle.on {
+    background: var(--accent);
+    color: #fff;
+  }
+  .layer-toggle .lt-icon { font-size: 15px; }
+
   /* —— search-box（桌面输入框；移动端默认隐藏，由 mobile-search-btn 替代）—— */
   .search-box:focus-within { box-shadow: 4px 4px 0 var(--ink); }
   .search-box input {
@@ -1138,6 +1157,9 @@
     .trips-btn { padding: 0 10px; font-size: 13px; }
     .trips-btn > span:first-child { white-space: nowrap; }
     .trips-btn .count { padding: 1px 6px; font-size: 11px; }
+    /* layer-toggle：移动端只留图标，省横向空间 */
+    .layer-toggle { padding: 0; width: 44px; justify-content: center; }
+    .layer-toggle .lt-label { display: none; }
     /* mobile-search-btn 也是 44 方形 */
     .mobile-search-btn { width: 44px; font-size: 16px; }
 
@@ -1302,6 +1324,11 @@
     <button data-view="3D" class="active">3D</button>
     <button data-view="satellite">卫星</button>
   </div>
+  <button class="layer-toggle toolbar-item on" id="layer-toggle-btn" type="button"
+          title="在地图上显示 / 隐藏栗栗熊去过的所有地方">
+    <span class="lt-icon">🐾</span>
+    <span class="lt-label">全球足迹</span>
+  </button>
   <button class="trips-btn toolbar-item" id="trips-btn" type="button" title="历史足迹">
     <span>🎫 机票夹</span>
     <span class="count" id="trips-count">0</span>
@@ -1738,6 +1765,7 @@ function initMap() {
   });
 
   redrawHistoryMarkers();
+  applyPublicLayer();   // 「全球足迹」默认开：进站即点亮全球散点
 }
 
 function switchView(view) {
@@ -1854,14 +1882,20 @@ async function loadPublicMarkers() {
       if (typeof it.lat !== 'number' || typeof it.lng !== 'number') continue;
       const dot = document.createElement('div');
       dot.className = 'pin-public' + (it.is_mine ? ' is-mine' : '');
-      dot.title = it.is_mine ? '你的足迹' : '栗栗熊到过这里';
+      dot.title = (it.place_short ? it.place_short + ' · ' : '')
+        + (it.is_mine ? '你的足迹（点击看图）' : '栗栗熊到过这里（点击看图）');
       const m = new AMap.Marker({
         position: [it.lng, it.lat],
         content: dot,
         anchor: 'center',
         offset: new AMap.Pixel(0, 0),
         zIndex: 50,                          // 个人 polaroid 是 100+，公开点垫底
-        bubble: true,
+        bubble: false,                       // 自己处理 click，别冒泡成地图取点
+      });
+      // 点圆点 → 直接弹出当地生成的那张图（省得在全球墙里翻）
+      m.on('click', (ev) => {
+        if (ev && ev.originEvent) ev.originEvent.stopPropagation();
+        openFeedItem({ ...it, visibility: 'public' });  // markers 仅含公开图
       });
       m.setMap(map);
       publicMarkers.push(m);
@@ -1876,6 +1910,29 @@ async function loadPublicMarkers() {
 
 function clearPublicMarkers() {
   for (const m of publicMarkers) m.setMap(null);
+}
+
+// —— 「全球足迹」散点图层开关：默认开，状态记 localStorage ——
+// 单一事实来源：图层显隐只由这个开关决定，不再跟着机票夹 tab 走。
+const LAYER_KEY = 'lilibear.publicLayer.v1';
+function publicLayerOn() {
+  try {
+    const v = localStorage.getItem(LAYER_KEY);
+    return v === null ? true : v === '1';  // 默认开
+  } catch { return true; }
+}
+function publicLayerWrite(on) {
+  try { localStorage.setItem(LAYER_KEY, on ? '1' : '0'); } catch {}
+}
+// 按当前开关状态把散点图层显示 / 隐藏（loadPublicMarkers 自带「已加载则直接显示」）
+function applyPublicLayer() {
+  if (publicLayerOn()) loadPublicMarkers();
+  else clearPublicMarkers();
+}
+// 同步开关按钮的视觉态（on 时 accent 实心）
+function updateLayerToggleUI() {
+  const btn = $('layer-toggle-btn');
+  if (btn) btn.classList.toggle('on', publicLayerOn());
 }
 
 function redrawHistoryMarkers() {
@@ -2916,11 +2973,10 @@ function renderTripsPanel(tab) {
   body.appendChild(buildTripsTabs());
   if (tab === 'mine') {
     renderMineList(body);
-    clearPublicMarkers();                  // 退出全球墙：地球仪上的散点也撤掉
   } else {
     renderFeedList(body);
-    loadPublicMarkers();                   // 进入全球墙：在地球仪上点亮所有公开点
   }
+  // 散点图层显隐由「全球足迹」开关统一管，不再跟着 tab 切换
   logEvent(tab === 'mine' ? 'open_trips' : 'open_feed', {});
 }
 
@@ -3178,9 +3234,19 @@ $('close-btn').onclick = () => {
   $('panel').classList.remove('open');
   if (pendingLatLng) onConfirmCancel();
   if (!busyGet()) $('hint').classList.remove('hidden');
-  clearPublicMarkers();                        // 关 panel 退出全球墙模式：撤掉地球仪上的公开点散点
+  // 散点图层不随 panel 关闭而撤；由「全球足迹」开关统一管
 };
 $('trips-btn').onclick = openTrips;
+
+// 「全球足迹」开关：翻转状态 → 落盘 → 应用图层 → 同步按钮视觉
+$('layer-toggle-btn').onclick = () => {
+  const next = !publicLayerOn();
+  publicLayerWrite(next);
+  updateLayerToggleUI();
+  applyPublicLayer();
+  logEvent('toggle_public_layer', { on: next });
+};
+updateLayerToggleUI();
 
 // 搜索框：按钮点击 / 回车都触发；输入时清掉旧错误
 $('search-go').onclick = onSearchSubmit;

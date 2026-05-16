@@ -1581,7 +1581,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def _handle_feed_markers(self):
         """轻量 marker 数据：所有公开图（含坐标）按 created_at DESC，封顶 limit。
-        给"全球墙"tab 在地球仪上画散点用。前端拿 [{id, lat, lng}] 一次性渲染。"""
+        给地球仪上的"全球足迹"散点图层用。带 place_short / author_nickname，
+        让前端点击圆点能直接弹出那张图（无需再发一次单条详情请求）。"""
         qs = self.path.split('?', 1)[1] if '?' in self.path else ''
         params = urllib.parse.parse_qs(qs)
         try:
@@ -1592,9 +1593,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         conn = _db_open()
         try:
             cur = conn.execute(
-                "SELECT id, lat, lng, created_at, user_id FROM images "
-                "WHERE visibility='public' AND lat IS NOT NULL AND lng IS NOT NULL "
-                "ORDER BY created_at DESC LIMIT ?",
+                "SELECT i.id, i.lat, i.lng, i.created_at, i.user_id, "
+                "i.place_short, u.nickname AS author_nickname "
+                "FROM images i LEFT JOIN users u ON u.user_id = i.user_id "
+                "WHERE i.visibility='public' AND i.lat IS NOT NULL AND i.lng IS NOT NULL "
+                "ORDER BY i.created_at DESC LIMIT ?",
                 (limit,)
             )
             rows = [dict(r) for r in cur.fetchall()]
@@ -1606,6 +1609,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             'lng': r['lng'],
             'created_at': r['created_at'],
             'is_mine': r['user_id'] == self._user_id,
+            'place_short': r['place_short'] or '',
+            'author_nickname': r['author_nickname'] or '',
         } for r in rows]
         self._json_response(200, {'items': out})
 
