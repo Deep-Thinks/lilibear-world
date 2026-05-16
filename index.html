@@ -754,6 +754,22 @@
     color: #fff;
   }
   .layer-toggle .lt-icon { font-size: 15px; }
+  /* 「去过 N 个地方」计数徽标；on 态按钮是 accent 实心 → 徽标反白才有对比 */
+  .layer-toggle .count {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 12px;
+    min-width: 18px;
+    text-align: center;
+    align-self: center;
+  }
+  .layer-toggle.on .count {
+    background: #fff;
+    color: var(--accent);
+  }
+  .layer-toggle .count:empty { display: none; }   /* 计数未到 → 不占位 */
 
   /* —— search-box（桌面输入框；移动端默认隐藏，由 mobile-search-btn 替代）—— */
   .search-box:focus-within { box-shadow: 4px 4px 0 var(--ink); }
@@ -1157,9 +1173,10 @@
     .trips-btn { padding: 0 10px; font-size: 13px; }
     .trips-btn > span:first-child { white-space: nowrap; }
     .trips-btn .count { padding: 1px 6px; font-size: 11px; }
-    /* layer-toggle：移动端只留图标，省横向空间 */
-    .layer-toggle { padding: 0; width: 44px; justify-content: center; }
+    /* layer-toggle：移动端隐掉文字标签，只留 🐾 + 计数，省横向空间 */
+    .layer-toggle { padding: 0 9px; font-size: 13px; gap: 5px; }
     .layer-toggle .lt-label { display: none; }
+    .layer-toggle .count { padding: 1px 6px; font-size: 11px; }
     /* mobile-search-btn 也是 44 方形 */
     .mobile-search-btn { width: 44px; font-size: 16px; }
 
@@ -1328,6 +1345,7 @@
           title="在地图上显示 / 隐藏栗栗熊去过的所有地方">
     <span class="lt-icon">🐾</span>
     <span class="lt-label">全球足迹</span>
+    <span class="count" id="layer-count"></span>
   </button>
   <button class="trips-btn toolbar-item" id="trips-btn" type="button" title="历史足迹">
     <span>🎫 机票夹</span>
@@ -1855,56 +1873,69 @@ function makePhotoPin(trip) {
 }
 
 //==================================================================
-// 「全球墙」公开点图层：切到 feed tab 时显示所有公开图的散点，
+// 「全球足迹」公开点图层：在地球仪上铺所有公开图的散点，
 // 让用户立刻感觉栗栗熊遍布全球。区别于个人 polaroid 用小橙点。
 //==================================================================
 const publicMarkers = [];
-let _publicMarkersLoaded = false;
-let _publicMarkersLoading = false;
+let _publicItems = null;            // /api/feed/markers 结果缓存
+let _publicFetchPromise = null;     // 并发去重：boot 时欢迎气泡 + 图层共用一次请求
+let _publicMarkersBuilt = false;    // marker 实例是否已建好
+let _publicCount = null;            // 公开点总数 = 栗栗熊去过多少地方
+
+// 拉公开点数据（带缓存 + 并发去重），顺带刷新「去过 N 个地方」计数。
+function fetchPublicItems() {
+  if (_publicItems) return Promise.resolve(_publicItems);
+  if (_publicFetchPromise) return _publicFetchPromise;
+  _publicFetchPromise = fetch('/api/feed/markers?limit=2000', {
+    cache: 'no-store', credentials: 'same-origin',
+  }).then((r) => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then((j) => {
+    _publicItems = (j && j.items) || [];
+    _publicCount = _publicItems.length;
+    updateLayerCountUI();
+    return _publicItems;
+  }).catch((e) => {
+    _publicFetchPromise = null;     // 失败允许下次重试
+    throw e;
+  });
+  return _publicFetchPromise;
+}
 
 async function loadPublicMarkers() {
   if (!map) return;
-  if (_publicMarkersLoading) return;
-  // 已加载过：直接显示
-  if (_publicMarkersLoaded) {
-    for (const m of publicMarkers) m.setMap(map);
-    return;
-  }
-  _publicMarkersLoading = true;
   try {
-    const r = await fetch('/api/feed/markers?limit=2000', {
-      cache: 'no-store', credentials: 'same-origin',
-    });
-    if (!r.ok) return;
-    const j = await r.json().catch(() => null);
-    const items = (j && j.items) || [];
-    for (const it of items) {
-      if (typeof it.lat !== 'number' || typeof it.lng !== 'number') continue;
-      const dot = document.createElement('div');
-      dot.className = 'pin-public' + (it.is_mine ? ' is-mine' : '');
-      dot.title = (it.place_short ? it.place_short + ' · ' : '')
-        + (it.is_mine ? '你的足迹（点击看图）' : '栗栗熊到过这里（点击看图）');
-      const m = new AMap.Marker({
-        position: [it.lng, it.lat],
-        content: dot,
-        anchor: 'center',
-        offset: new AMap.Pixel(0, 0),
-        zIndex: 50,                          // 个人 polaroid 是 100+，公开点垫底
-        bubble: false,                       // 自己处理 click，别冒泡成地图取点
-      });
-      // 点圆点 → 直接弹出当地生成的那张图（省得在全球墙里翻）
-      m.on('click', (ev) => {
-        if (ev && ev.originEvent) ev.originEvent.stopPropagation();
-        openFeedItem({ ...it, visibility: 'public' });  // markers 仅含公开图
-      });
-      m.setMap(map);
-      publicMarkers.push(m);
+    const items = await fetchPublicItems();
+    if (!_publicMarkersBuilt) {
+      for (const it of items) {
+        if (typeof it.lat !== 'number' || typeof it.lng !== 'number') continue;
+        // 用 makePinDom 建圆点：它会阻断 mousedown/touchstart 冒泡，
+        // 否则按下圆点会被 AMap 误判为地图拖拽起手（"粘鼠标"）。
+        const dot = makePinDom('pin-public' + (it.is_mine ? ' is-mine' : ''));
+        dot.title = (it.place_short ? it.place_short + ' · ' : '')
+          + (it.is_mine ? '你的足迹（点击看图）' : '栗栗熊到过这里（点击看图）');
+        const m = new AMap.Marker({
+          position: [it.lng, it.lat],
+          content: dot,
+          anchor: 'center',
+          offset: new AMap.Pixel(0, 0),
+          zIndex: 50,                        // 个人 polaroid 是 100+，公开点垫底
+          bubble: false,                     // 自己处理 click，别冒泡成地图取点
+        });
+        // 点圆点 → 直接弹出当地生成的那张图（省得在全球墙里翻）
+        m.on('click', (ev) => {
+          if (ev && ev.originEvent) ev.originEvent.stopPropagation();
+          openFeedItem({ ...it, visibility: 'public' });  // markers 仅含公开图
+        });
+        publicMarkers.push(m);
+      }
+      _publicMarkersBuilt = true;
     }
-    _publicMarkersLoaded = true;
+    // 只有开关仍处于 on 才真正挂上（防止 fetch 期间用户又关了图层）
+    if (publicLayerOn()) for (const m of publicMarkers) m.setMap(map);
   } catch (e) {
     // ignore — feed 是次要功能，挂了不该影响主流程
-  } finally {
-    _publicMarkersLoading = false;
   }
 }
 
@@ -1924,15 +1955,30 @@ function publicLayerOn() {
 function publicLayerWrite(on) {
   try { localStorage.setItem(LAYER_KEY, on ? '1' : '0'); } catch {}
 }
-// 按当前开关状态把散点图层显示 / 隐藏（loadPublicMarkers 自带「已加载则直接显示」）
+// 按当前开关状态把散点图层显示 / 隐藏
 function applyPublicLayer() {
-  if (publicLayerOn()) loadPublicMarkers();
-  else clearPublicMarkers();
+  if (publicLayerOn()) {
+    loadPublicMarkers();                  // 内部 fetchPublicItems → 顺带刷新计数
+  } else {
+    clearPublicMarkers();
+    fetchPublicItems().catch(() => {});   // 图层关着也要显示「去过 N 个地方」
+  }
 }
 // 同步开关按钮的视觉态（on 时 accent 实心）
 function updateLayerToggleUI() {
   const btn = $('layer-toggle-btn');
   if (btn) btn.classList.toggle('on', publicLayerOn());
+}
+// 刷新「去过 N 个地方」计数徽标 + 按钮 tooltip
+function updateLayerCountUI() {
+  const badge = $('layer-count');
+  if (badge) badge.textContent = (_publicCount == null ? '' : _publicCount);
+  const btn = $('layer-toggle-btn');
+  if (btn) {
+    btn.title = (_publicCount == null
+      ? '在地图上显示 / 隐藏栗栗熊去过的所有地方'
+      : '栗栗熊已去过 ' + _publicCount + ' 个地方 · 点击显示 / 隐藏');
+  }
 }
 
 function redrawHistoryMarkers() {
@@ -3247,6 +3293,7 @@ $('layer-toggle-btn').onclick = () => {
   logEvent('toggle_public_layer', { on: next });
 };
 updateLayerToggleUI();
+updateLayerCountUI();   // 初始化徽标（计数后到，fetchPublicItems 完成后回填）
 
 // 搜索框：按钮点击 / 回车都触发；输入时清掉旧错误
 $('search-go').onclick = onSearchSubmit;
@@ -3308,14 +3355,13 @@ function showWelcomeIfFirstTime() {
 }
 
 // 拉公开点数填到 welcome-stat。少于阈值就不展示，避免显得冷清。
+// 复用 fetchPublicItems（带缓存 + 并发去重），与散点图层共用同一次请求。
 async function fetchAndShowSocialProof() {
   const stat = $('welcome-stat');
   if (!stat) return;
   try {
-    const r = await fetch('/api/feed/markers?limit=2000', { cache: 'no-store', credentials: 'same-origin' });
-    if (!r.ok) return;
-    const j = await r.json().catch(() => null);
-    const n = (j && j.items && j.items.length) || 0;
+    const items = await fetchPublicItems();
+    const n = items.length;
     if (n < 5) return;                    // 太少则隐藏，避免社会证明反向奏效
     const have = $('welcome-stat-have');
     const next = $('welcome-stat-next');
